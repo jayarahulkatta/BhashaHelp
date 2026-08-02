@@ -9,18 +9,21 @@ create table user_roles (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 alter table user_roles enable row level security;
-create policy "Users can read their own role" on user_roles for select using (auth.uid() = id);
+create policy "Users can read their own role" on user_roles for select using ((select auth.uid()) = id);
 
 -- Function to check if current user is an admin
 create or replace function public.is_admin()
-returns boolean as $$
-begin
-  return exists (
-    select 1 from user_roles 
-    where id = auth.uid() and role = 'admin'
+returns boolean
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  select exists (
+    select 1 from user_roles
+    where id = (select auth.uid()) and role = 'admin'
   );
-end;
-$$ language plpgsql security definer;
+$$;
 
 -- 2. User Preferences
 create table user_preferences (
@@ -29,9 +32,9 @@ create table user_preferences (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 alter table user_preferences enable row level security;
-create policy "Users can read own preferences" on user_preferences for select using (auth.uid() = id);
-create policy "Users can update own preferences" on user_preferences for update using (auth.uid() = id);
-create policy "Users can insert own preferences" on user_preferences for insert with check (auth.uid() = id);
+create policy "Users can read own preferences" on user_preferences for select using ((select auth.uid()) = id);
+create policy "Users can update own preferences" on user_preferences for update using ((select auth.uid()) = id);
+create policy "Users can insert own preferences" on user_preferences for insert with check ((select auth.uid()) = id);
 
 -- 3. Schemes
 create table schemes (
@@ -75,6 +78,7 @@ returns table (
   similarity float
 )
 language sql stable
+set search_path = public
 as $$
   select
     id,
@@ -102,9 +106,10 @@ create table query_history (
   schemes_retrieved jsonb, -- Array of scheme IDs and their similarity scores
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+create index query_history_user_id_idx on query_history (user_id);
 alter table query_history enable row level security;
-create policy "Users can read own queries" on query_history for select using (auth.uid() = user_id);
-create policy "Users can insert own queries" on query_history for insert with check (auth.uid() = user_id);
+create policy "Users can read own queries" on query_history for select using ((select auth.uid()) = user_id);
+create policy "Users can insert own queries" on query_history for insert with check ((select auth.uid()) = user_id);
 -- No update or delete policies for query history to maintain an immutable log for the user.
 
 -- 5. Scheme Audit Log
@@ -117,6 +122,8 @@ create table scheme_audit_log (
   new_values jsonb,
   changed_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+create index scheme_audit_log_scheme_id_idx on scheme_audit_log (scheme_id);
+create index scheme_audit_log_changed_by_idx on scheme_audit_log (changed_by);
 alter table scheme_audit_log enable row level security;
 create policy "Only admins can read audit logs" on scheme_audit_log for select using (is_admin());
 -- Insert is strictly handled via trigger.
@@ -140,7 +147,9 @@ begin
   end if;
   return null;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = public;
+
+revoke execute on function public.log_scheme_changes() from public, anon, authenticated;
 
 create trigger schemes_audit_trigger
 after insert or update or delete on schemes
