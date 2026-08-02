@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BhashaHelp
 
-## Getting Started
+BhashaHelp is a mobile-first voice assistant for discovering verified Indian government welfare schemes in Telugu, Hindi, and English. It uses Supabase for auth/data, Gemini for embeddings and grounded answers, 2Factor for OTP login, and Bhashini for text-to-speech.
 
-First, run the development server:
+## Local Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create `.env.local` from `.env.example` and fill in the real values:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+GEMINI_API_KEY=
+BHASHINI_API_KEY=
+BHASHINI_USER_ID=
+TWOFACTOR_API_KEY=
+```
+
+3. In Supabase, run the schema in `supabase/schema.sql`. If the database already exists, apply the migration in `supabase/migrations/20260802000000_return_scheme_source_fields.sql`.
+
+4. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Supabase Requirements
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Enable `vector` and `pgcrypto` extensions.
+- Create the `schemes`, `user_preferences`, `query_history`, `user_roles`, and `scheme_audit_log` tables from `supabase/schema.sql`.
+- Confirm RLS is enabled on every table.
+- Confirm `match_schemes` returns `source_url` and `last_verified_date`, because the UI and answer prompt use both fields.
 
-## Learn More
+## Verification
 
-To learn more about Next.js, take a look at the following resources:
+Run these before deploying:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+npm run build
+npm audit --audit-level=high
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The project currently uses npm overrides for `postcss` and `sharp` so dependency audits stay clean while staying on the current Next.js release.

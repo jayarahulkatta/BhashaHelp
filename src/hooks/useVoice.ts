@@ -1,11 +1,43 @@
 import { useState, useCallback, useRef } from 'react';
 import { Language } from '@/lib/i18n';
 
+interface SpeechRecognitionResultItem {
+  transcript: string;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: {
+    [index: number]: SpeechRecognitionResultItem;
+  };
+}
+
+interface SpeechRecognitionEvent {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}
+
+interface SpeechRecognitionInstance {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
+
 // Extend window object for web speech api
 declare global {
   interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
   }
 }
 
@@ -14,7 +46,7 @@ export function useVoice(lang: Language) {
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
   
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
   const startRecording = useCallback(() => {
     setError(null);
@@ -45,12 +77,12 @@ export function useVoice(lang: Language) {
         setIsRecording(true);
       };
       
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event) => {
         const speechResult = event.results[0][0].transcript;
         setTranscript(speechResult);
       };
       
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event) => {
         setIsRecording(false);
         setError(`Speech recognition error: ${event.error}`);
       };

@@ -1,4 +1,4 @@
-import { validateServerConfig } from './config';
+import { getGeminiConfig } from './config';
 
 interface GeminiEmbeddingResponse {
   embedding: {
@@ -6,9 +6,21 @@ interface GeminiEmbeddingResponse {
   };
 }
 
+interface GeminiGenerateRequest {
+  contents: Array<{
+    parts: Array<{ text: string }>;
+  }>;
+  generationConfig: {
+    temperature: number;
+  };
+  systemInstruction?: {
+    parts: Array<{ text: string }>;
+  };
+}
+
 export async function getEmbedding(text: string): Promise<number[]> {
-  const config = validateServerConfig();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${config.GEMINI_API_KEY}`;
+  const config = getGeminiConfig();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${config.apiKey}`;
   
   const response = await fetch(url, {
     method: 'POST',
@@ -33,11 +45,11 @@ export async function getEmbedding(text: string): Promise<number[]> {
 }
 
 export async function generateText(prompt: string, systemInstruction?: string): Promise<string> {
-  const config = validateServerConfig();
+  const config = getGeminiConfig();
   // Using gemini-2.5-flash as per the audit requirement
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${config.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${config.apiKey}`;
   
-  const body: any = {
+  const body: GeminiGenerateRequest = {
     contents: [
       {
         parts: [{ text: prompt }]

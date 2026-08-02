@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { validateServerConfig } from '@/lib/config';
+import { getBhashiniConfig } from '@/lib/config';
 import { z } from 'zod';
 
 const ttsSchema = z.object({
@@ -23,7 +23,7 @@ const ttsServiceIds: Record<string, string> = {
 
 export async function POST(request: Request) {
   try {
-    const config = validateServerConfig();
+    const config = getBhashiniConfig();
     const body = await request.json();
     
     const parsed = ttsSchema.safeParse(body);
@@ -70,10 +70,9 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': config.BHASHINI_API_KEY,
-        // Depending on the exact API version, it might expect these in headers instead
-        // 'userID': config.BHASHINI_USER_ID,
-        // 'ulcaApiKey': config.BHASHINI_API_KEY
+        Authorization: config.apiKey,
+        userID: config.userId,
+        ulcaApiKey: config.apiKey,
       },
       body: JSON.stringify(payload)
     });

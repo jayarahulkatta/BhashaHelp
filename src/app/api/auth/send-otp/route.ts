@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, normalizePhoneNumber } from '@/lib/auth';
-import { validateServerConfig } from '@/lib/config';
+import { getTwoFactorConfig } from '@/lib/config';
 import { z } from 'zod';
 
 const sendOtpSchema = z.object({
@@ -9,7 +9,7 @@ const sendOtpSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const config = validateServerConfig();
+    const config = getTwoFactorConfig();
     const body = await request.json();
     
     const parsed = sendOtpSchema.safeParse(body);
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     let normalizedPhone: string;
     try {
       normalizedPhone = normalizePhoneNumber(phone);
-    } catch (e) {
+    } catch {
       return NextResponse.json({ error: 'Invalid phone number format' }, { status: 400 });
     }
 
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     // Call 2Factor.in API
     // The AUTOGEN3 template automatically generates a 6-digit OTP
     // 2Factor URL format: https://2factor.in/API/V1/{api_key}/SMS/{phone_number}/AUTOGEN3/OTP1
-    const twoFactorUrl = `https://2factor.in/API/V1/${config.TWOFACTOR_API_KEY}/SMS/${encodeURIComponent(normalizedPhone)}/AUTOGEN3/OTP1`;
+    const twoFactorUrl = `https://2factor.in/API/V1/${config.apiKey}/SMS/${encodeURIComponent(normalizedPhone)}/AUTOGEN3/OTP1`;
     
     const response = await fetch(twoFactorUrl, { method: 'GET' });
     const data = await response.json();

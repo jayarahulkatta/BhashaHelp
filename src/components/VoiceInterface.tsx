@@ -10,6 +10,10 @@ interface VoiceInterfaceProps {
   lang: Language;
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export function VoiceInterface({ lang }: VoiceInterfaceProps) {
   const t = getTranslation(lang);
   const { user } = useAuth();
@@ -29,12 +33,14 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
   // When speech recognition produces a final result or we stop it, check if we have text
   React.useEffect(() => {
     if (!isRecording && appState === 'recording') {
-      if (transcript.trim()) {
-        setConfirmedQuery(transcript);
-        setAppState('confirming');
-      } else {
-        setAppState('idle');
-      }
+      queueMicrotask(() => {
+        if (transcript.trim()) {
+          setConfirmedQuery(transcript);
+          setAppState('confirming');
+        } else {
+          setAppState('idle');
+        }
+      });
     }
   }, [isRecording, transcript, appState]);
 
@@ -73,8 +79,8 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
           // Don't fail the whole search if TTS fails, just won't play audio.
         }
       }
-    } catch (err: any) {
-      setApiError(err.message || t.errors.search);
+    } catch (err) {
+      setApiError(getErrorMessage(err, t.errors.search));
       setAppState('confirming');
     }
   };
@@ -149,9 +155,11 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
                   <div key={s.id} className="bg-white border rounded-xl p-5 shadow-sm space-y-3">
                     <h5 className="font-semibold text-lg text-blue-700">{s.name}</h5>
                     <p className="text-slate-700 line-clamp-3">{s.description}</p>
-                    <a href={s.source_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium inline-flex items-center mt-2 p-2 -ml-2 rounded-lg hover:bg-blue-50">
-                      Learn More ↗
-                    </a>
+                    {s.source_url && (
+                      <a href={s.source_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium inline-flex items-center mt-2 p-2 -ml-2 rounded-lg hover:bg-blue-50">
+                        Learn More ↗
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>

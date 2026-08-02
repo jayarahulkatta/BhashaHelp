@@ -52,7 +52,7 @@ export function normalizePhoneNumber(phone: string): string {
       throw new Error('Invalid phone number');
     }
     return phoneNumber.format('E.164'); // e.g. +91XXXXXXXXXX
-  } catch (error) {
+  } catch {
     throw new Error('Invalid phone number format');
   }
 }

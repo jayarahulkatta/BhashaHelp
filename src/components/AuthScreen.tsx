@@ -3,11 +3,14 @@
 import React, { useState } from 'react';
 import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from './AuthProvider';
 import { Language, getTranslation } from '@/lib/i18n';
 
 interface AuthScreenProps {
   lang: Language;
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }
 
 export function AuthScreen({ lang }: AuthScreenProps) {
@@ -30,8 +33,8 @@ export function AuthScreen({ lang }: AuthScreenProps) {
       const res = await api.auth.sendOtp(phone);
       setSessionId(res.sessionId);
       setStep('otp');
-    } catch (err: any) {
-      setError(err.message || t.errors.generic);
+    } catch (err) {
+      setError(getErrorMessage(err, t.errors.generic));
     } finally {
       setLoading(false);
     }
@@ -58,8 +61,8 @@ export function AuthScreen({ lang }: AuthScreenProps) {
       if (signInError) throw signInError;
       
       // Assuming AuthProvider picks up the session automatically and re-renders
-    } catch (err: any) {
-      setError(err.message || t.auth.wrongCode.replace('{{attempts}}', 'some'));
+    } catch (err) {
+      setError(getErrorMessage(err, t.auth.wrongCode.replace('{{attempts}}', 'some')));
     } finally {
       setLoading(false);
     }

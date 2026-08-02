@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, normalizePhoneNumber } from '@/lib/auth';
-import { validateServerConfig } from '@/lib/config';
+import { getTwoFactorConfig } from '@/lib/config';
 import { getServiceSupabase } from '@/lib/supabase';
 import crypto from 'crypto';
 import { z } from 'zod';
@@ -11,9 +11,31 @@ const verifyOtpSchema = z.object({
   sessionId: z.string().min(1, 'Session ID is required')
 });
 
+async function findUserByPhone(supabaseAdmin: ReturnType<typeof getServiceSupabase>, phone: string) {
+  const usersPerPage = 1000;
+
+  for (let page = 1; page <= 10; page += 1) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      page,
+      perPage: usersPerPage,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const userRecord = data.users.find((user) => user.phone === phone);
+    if (userRecord || data.users.length < usersPerPage) {
+      return userRecord ?? null;
+    }
+  }
+
+  throw new Error('Auth user lookup exceeded pagination limit');
+}
+
 export async function POST(request: Request) {
   try {
-    const config = validateServerConfig();
+    const config = getTwoFactorConfig();
     const body = await request.json();
     
     const parsed = verifyOtpSchema.safeParse(body);
@@ -26,7 +48,7 @@ export async function POST(request: Request) {
     let normalizedPhone: string;
     try {
       normalizedPhone = normalizePhoneNumber(phone);
-    } catch (e) {
+    } catch {
       return NextResponse.json({ error: 'Invalid phone number format' }, { status: 400 });
     }
 
@@ -41,7 +63,7 @@ export async function POST(request: Request) {
 
     // Call 2Factor.in Verification API
     // 2Factor URL format: https://2factor.in/API/V1/{api_key}/SMS/VERIFY/{session_id}/{otp_entered_by_user}
-    const verifyUrl = `https://2factor.in/API/V1/${config.TWOFACTOR_API_KEY}/SMS/VERIFY/${encodeURIComponent(sessionId)}/${encodeURIComponent(otp)}`;
+    const verifyUrl = `https://2factor.in/API/V1/${config.apiKey}/SMS/VERIFY/${encodeURIComponent(sessionId)}/${encodeURIComponent(otp)}`;
     
     const response = await fetch(verifyUrl, { method: 'GET' });
     const data = await response.json();
@@ -53,15 +75,13 @@ export async function POST(request: Request) {
     // OTP is valid. Now handle Supabase authentication.
     const supabaseAdmin = getServiceSupabase();
     
-    // Check if the user already exists in Supabase Auth
-    const { data: userList, error: userLookupError } = await supabaseAdmin.auth.admin.listUsers();
-
-    if (userLookupError) {
+    let userRecord;
+    try {
+      userRecord = await findUserByPhone(supabaseAdmin, normalizedPhone);
+    } catch (userLookupError) {
       console.error('Error looking up user:', userLookupError);
       return NextResponse.json({ error: 'Internal server error during authentication' }, { status: 500 });
     }
-
-    const userRecord = userList.users.find((user) => user.phone === normalizedPhone);
 
     // Generate a high-entropy random password just for this login session
     const oneTimePassword = crypto.randomBytes(32).toString('base64');

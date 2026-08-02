@@ -10,6 +10,18 @@ const querySchema = z.object({
   userId: z.string().optional()
 });
 
+interface MatchedScheme {
+  id: string;
+  name: string;
+  description: string;
+  eligibility_criteria: string;
+  benefits: string;
+  application_process: string;
+  source_url: string | null;
+  last_verified_date: string;
+  similarity: number;
+}
+
 // Core constraints for the LLM
 const SYSTEM_PROMPT = `You are BhashaHelp, an AI assistant helping Indian citizens discover government welfare schemes.
 STRICT RULES:
@@ -46,11 +58,12 @@ export async function POST(request: Request) {
 
     // 3. Search Supabase using vector similarity
     const supabaseAdmin = getServiceSupabase();
-    const { data: matchedSchemes, error: matchError } = await supabaseAdmin.rpc('match_schemes', {
+    const { data, error: matchError } = await supabaseAdmin.rpc('match_schemes', {
       query_embedding: queryEmbedding,
       match_threshold: 0.60, // Confidence gate
       match_count: 5
     });
+    const matchedSchemes = (data ?? []) as MatchedScheme[];
 
     if (matchError) {
       console.error('Supabase match_schemes error:', matchError);
@@ -79,13 +92,15 @@ export async function POST(request: Request) {
     }
 
     // 5. Construct Context for the final answer
-    const contextString = matchedSchemes.map((s: any, i: number) => `
+    const contextString = matchedSchemes.map((s) => `
 <scheme id="${s.id}">
 Name: ${s.name}
 Description: ${s.description}
 Eligibility: ${s.eligibility_criteria}
 Benefits: ${s.benefits}
 Process: ${s.application_process}
+Source: ${s.source_url ?? 'Not provided'}
+Last verified: ${s.last_verified_date}
 </scheme>
 `).join('\n');
 
@@ -113,7 +128,7 @@ Based ONLY on the above <context>, answer the user's <query> in ${lang}. Be conc
         query_text: text,
         language: lang,
         response_text: finalAnswer,
-        schemes_retrieved: matchedSchemes.map((s: any) => ({ id: s.id, similarity: s.similarity }))
+        schemes_retrieved: matchedSchemes.map((s) => ({ id: s.id, similarity: s.similarity }))
       });
     }
 
