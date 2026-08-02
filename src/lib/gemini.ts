@@ -1,0 +1,71 @@
+import { validateServerConfig } from './config';
+
+interface GeminiEmbeddingResponse {
+  embedding: {
+    values: number[];
+  };
+}
+
+export async function getEmbedding(text: string): Promise<number[]> {
+  const config = validateServerConfig();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${config.GEMINI_API_KEY}`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: "models/gemini-embedding-001",
+      content: {
+        parts: [{ text }]
+      },
+      outputDimensionality: 768
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    console.error('Gemini Embedding Error:', errorData);
+    throw new Error('Failed to generate embedding');
+  }
+
+  const data: GeminiEmbeddingResponse = await response.json();
+  return data.embedding.values;
+}
+
+export async function generateText(prompt: string, systemInstruction?: string): Promise<string> {
+  const config = validateServerConfig();
+  // Using gemini-2.5-flash as per the audit requirement
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${config.GEMINI_API_KEY}`;
+  
+  const body: any = {
+    contents: [
+      {
+        parts: [{ text: prompt }]
+      }
+    ],
+    generationConfig: {
+      temperature: 0.1, // Low temperature for deterministic RAG answers
+    }
+  };
+
+  if (systemInstruction) {
+    body.systemInstruction = {
+      parts: [{ text: systemInstruction }]
+    };
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    console.error('Gemini Generation Error:', errorData);
+    throw new Error('Failed to generate text');
+  }
+
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}

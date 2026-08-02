@@ -1,0 +1,38 @@
+{
+  "common": {
+    "welcome": "Welcome to BhashaHelp",
+    "description": "Voice-based government welfare scheme discovery assistant.",
+    "tapToSpeak": "Tap to Speak",
+    "listen": "Listen",
+    "reRecord": "Re-record",
+    "yes": "Yes",
+    "no": "No",
+    "cancel": "Cancel",
+    "error": "Error",
+    "retry": "Try Again"
+  },
+  "errors": {
+    "network": "No internet connection. Please try again when connected.",
+    "microphone": "Could not access microphone. Please allow microphone access.",
+    "transcription": "Could not understand the recording. Please try again in a quiet place.",
+    "search": "Search failed. Please try again.",
+    "answer": "Could not prepare answer. Please try again.",
+    "generic": "Something went wrong. Please try again."
+  },
+  "states": {
+    "recording": "Listening...",
+    "transcribing": "Understanding your question...",
+    "searching": "Looking for schemes...",
+    "answering": "Preparing your answer..."
+  },
+  "auth": {
+    "phonePlaceholder": "Phone Number",
+    "sendCode": "Send Code",
+    "sending": "Sending code to your phone...",
+    "codeSent": "Code sent! Check your SMS.",
+    "verifyCode": "Verify Code",
+    "checking": "Checking your code...",
+    "wrongCode": "Wrong code. You have {{attempts}} tries left.",
+    "resend": "Resend Code"
+  }
+}
