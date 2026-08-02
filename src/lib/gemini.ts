@@ -20,13 +20,13 @@ interface GeminiGenerateRequest {
 
 export async function getEmbedding(text: string): Promise<number[]> {
   const config = getGeminiConfig();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${config.apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.embeddingModel}:embedContent?key=${config.apiKey}`;
   
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: "models/gemini-embedding-001",
+      model: `models/${config.embeddingModel}`,
       content: {
         parts: [{ text }]
       },
@@ -46,8 +46,7 @@ export async function getEmbedding(text: string): Promise<number[]> {
 
 export async function generateText(prompt: string, systemInstruction?: string): Promise<string> {
   const config = getGeminiConfig();
-  // Using gemini-2.5-flash as per the audit requirement
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${config.apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.generationModel}:generateContent?key=${config.apiKey}`;
   
   const body: GeminiGenerateRequest = {
     contents: [
