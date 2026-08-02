@@ -9,6 +9,7 @@ export interface Scheme {
   benefits: string;
   application_process: string;
   similarity: number;
+  source_url?: string;
 }
 
 export interface QueryResponse {
@@ -93,6 +94,10 @@ export const api = {
 
   preferences: {
     saveLanguage: async (userId: string, lang: Language) => {
+      if (!supabase) {
+        throw new Error('Supabase client is unavailable');
+      }
+
       const { error } = await supabase
         .from('user_preferences')
         .upsert({ id: userId, preferred_language: lang });

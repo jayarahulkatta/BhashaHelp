@@ -10,7 +10,6 @@ const envSchema = z.object({
   TWOFACTOR_API_KEY: z.string().min(1).optional(),
 });
 
-// We cast process.env to allow validation to catch missing keys.
 const env = envSchema.safeParse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -22,11 +21,18 @@ const env = envSchema.safeParse({
 });
 
 if (!env.success) {
-  console.error('Invalid environment variables:', env.error.format());
-  throw new Error('Invalid environment variables');
+  console.warn('Some environment variables are missing or invalid:', env.error.format());
 }
 
-export const config = env.data;
+export const config = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  BHASHINI_API_KEY: process.env.BHASHINI_API_KEY,
+  BHASHINI_USER_ID: process.env.BHASHINI_USER_ID,
+  TWOFACTOR_API_KEY: process.env.TWOFACTOR_API_KEY,
+};
 
 // Server-side specific validation (run this only in server context to ensure keys exist)
 export function validateServerConfig() {

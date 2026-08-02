@@ -2,10 +2,9 @@ import { createClient } from '@supabase/supabase-js';
 import { config } from './config';
 
 // For client-side usage (uses anon key, respects RLS)
-export const supabase = createClient(
-  config.NEXT_PUBLIC_SUPABASE_URL,
-  config.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+export const supabase = config.NEXT_PUBLIC_SUPABASE_URL && config.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ? createClient(config.NEXT_PUBLIC_SUPABASE_URL, config.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  : null;
 
 // For server-side usage ONLY (bypasses RLS - use carefully)
 export function getServiceSupabase() {
@@ -15,6 +14,10 @@ export function getServiceSupabase() {
   
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing');
+  }
+
+  if (!config.NEXT_PUBLIC_SUPABASE_URL) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is missing');
   }
 
   return createClient(

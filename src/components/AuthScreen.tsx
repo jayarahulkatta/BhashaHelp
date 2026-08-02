@@ -47,6 +47,9 @@ export function AuthScreen({ lang }: AuthScreenProps) {
       const res = await api.auth.verifyOtp(phone, otp, sessionId);
       
       // We received the one-time password to sign into Supabase
+      if (!supabase) {
+        throw new Error('Authentication is unavailable right now');
+      }
       const { error: signInError } = await supabase.auth.signInWithPassword({
         phone: res.phone,
         password: res.password

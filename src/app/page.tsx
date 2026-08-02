@@ -14,7 +14,7 @@ export default function Home() {
 
   useEffect(() => {
     // If user is logged in, fetch their preferred language
-    if (user) {
+    if (user && supabase) {
       supabase
         .from('user_preferences')
         .select('preferred_language')
@@ -62,7 +62,7 @@ export default function Home() {
           </select>
           {user && (
             <button 
-              onClick={() => supabase.auth.signOut()}
+              onClick={() => supabase?.auth.signOut()}
               className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
               title="Logout"
             >

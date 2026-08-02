@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     
     const parsed = verifyOtpSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
     
     const { phone, otp, sessionId } = parsed.data;
@@ -53,18 +53,15 @@ export async function POST(request: Request) {
     // OTP is valid. Now handle Supabase authentication.
     const supabaseAdmin = getServiceSupabase();
     
-    // Check if the user already exists in auth.users
-    const { data: userRecord, error: userLookupError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('phone', normalizedPhone)
-      .schema('auth')
-      .maybeSingle();
+    // Check if the user already exists in Supabase Auth
+    const { data: userList, error: userLookupError } = await supabaseAdmin.auth.admin.listUsers();
 
     if (userLookupError) {
       console.error('Error looking up user:', userLookupError);
       return NextResponse.json({ error: 'Internal server error during authentication' }, { status: 500 });
     }
+
+    const userRecord = userList.users.find((user) => user.phone === normalizedPhone);
 
     // Generate a high-entropy random password just for this login session
     const oneTimePassword = crypto.randomBytes(32).toString('base64');
