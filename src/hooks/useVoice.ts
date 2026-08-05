@@ -1,112 +1,96 @@
 import { useState, useCallback, useRef } from 'react';
 import { Language } from '@/lib/i18n';
 
-interface SpeechRecognitionResultItem {
-  transcript: string;
-}
-
-interface SpeechRecognitionResultList {
-  [index: number]: {
-    [index: number]: SpeechRecognitionResultItem;
-  };
-}
-
-interface SpeechRecognitionEvent {
-  results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionErrorEvent {
-  error: string;
-}
-
-interface SpeechRecognitionInstance {
-  lang: string;
-  interimResults: boolean;
-  maxAlternatives: number;
-  onstart: (() => void) | null;
-  onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-}
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
-
-// Extend window object for web speech api
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  }
-}
-
 export function useVoice(lang: Language) {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
   
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
-  const startRecording = useCallback(() => {
+  const startRecording = useCallback(async () => {
     setError(null);
     setTranscript('');
-    
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-      setError('Speech recognition is not supported in this browser.');
-      return;
-    }
+    audioChunksRef.current = [];
 
     try {
-      const recognition = new SpeechRecognition();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Map our language codes to standard BCP-47 for browser speech API
-      const langCodeMap = {
-        'en': 'en-IN',
-        'te': 'te-IN',
-        'hi': 'hi-IN'
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
       
-      recognition.lang = langCodeMap[lang];
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-      
-      recognition.onstart = () => {
-        setIsRecording(true);
-      };
-      
-      recognition.onresult = (event) => {
-        const speechResult = event.results[0][0].transcript;
-        setTranscript(speechResult);
-      };
-      
-      recognition.onerror = (event) => {
+      mediaRecorder.onerror = () => {
+        setError('Recording failed');
         setIsRecording(false);
-        setError(`Speech recognition error: ${event.error}`);
+        stream.getTracks().forEach(track => track.stop());
       };
       
-      recognition.onend = () => {
-        setIsRecording(false);
-      };
-      
-      recognition.start();
-      recognitionRef.current = recognition;
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
       
     } catch (err) {
-      console.error('Error starting speech recognition', err);
-      setError('Could not start microphone');
-      setIsRecording(false);
-    }
-  }, [lang]);
-
-  const stopRecording = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      console.error('Error starting recording', err);
+      setError('Microphone access denied');
       setIsRecording(false);
     }
   }, []);
+
+  const stopRecording = useCallback(async () => {
+    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') {
+      return;
+    }
+
+    const mediaRecorder = mediaRecorderRef.current;
+    const stream = mediaRecorder.stream;
+    
+    return new Promise<void>((resolve) => {
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        
+        reader.onloadend = async () => {
+          const base64 = (reader.result as string).split(',')[1];
+          
+          try {
+            const response = await fetch('/api/stt', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ audio: base64, lang })
+            });
+            
+            const data = await response.json();
+            
+            if (data.text) {
+              setTranscript(data.text);
+            } else if (data.error) {
+              setError(data.error);
+            }
+          } catch (err) {
+            console.error('STT API error:', err);
+            setError('Transcription failed');
+          } finally {
+            setIsRecording(false);
+            resolve();
+          }
+        };
+        
+        reader.readAsDataURL(audioBlob);
+      };
+      
+      mediaRecorder.stop();
+    });
+  }, [lang]);
 
   return {
     isRecording,

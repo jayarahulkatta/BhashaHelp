@@ -68,6 +68,13 @@ export function getTwoFactorConfig() {
   };
 }
 
+export function getSarvamConfig() {
+  return {
+    apiKey: requireEnv('SARVAM_API_KEY'),
+    provider: process.env.SPEECH_PROVIDER || 'sarvam',
+  };
+}
+
 export function getBhashiniConfig() {
   return {
     apiKey: requireEnv('BHASHINI_API_KEY'),

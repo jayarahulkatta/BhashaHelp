@@ -11,7 +11,12 @@ const verifyOtpSchema = z.object({
   sessionId: z.string().min(1, 'Session ID is required')
 });
 
-async function findUserByPhone(supabaseAdmin: ReturnType<typeof getServiceSupabase>, phone: string) {
+function phoneToAuthEmail(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  return `${digits}@phone.bhashahelp.local`;
+}
+
+async function findUserByAuthEmail(supabaseAdmin: ReturnType<typeof getServiceSupabase>, email: string) {
   const usersPerPage = 1000;
 
   for (let page = 1; page <= 10; page += 1) {
@@ -24,7 +29,7 @@ async function findUserByPhone(supabaseAdmin: ReturnType<typeof getServiceSupaba
       throw error;
     }
 
-    const userRecord = data.users.find((user) => user.phone === phone);
+    const userRecord = data.users.find((user) => user.email === email);
     if (userRecord || data.users.length < usersPerPage) {
       return userRecord ?? null;
     }
@@ -74,10 +79,11 @@ export async function POST(request: Request) {
 
     // OTP is valid. Now handle Supabase authentication.
     const supabaseAdmin = getServiceSupabase();
+    const authEmail = phoneToAuthEmail(normalizedPhone);
     
     let userRecord;
     try {
-      userRecord = await findUserByPhone(supabaseAdmin, normalizedPhone);
+      userRecord = await findUserByAuthEmail(supabaseAdmin, authEmail);
     } catch (userLookupError) {
       console.error('Error looking up user:', userLookupError);
       return NextResponse.json({ error: 'Internal server error during authentication' }, { status: 500 });
@@ -90,16 +96,22 @@ export async function POST(request: Request) {
       // User exists, update their password so the client can log in
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userRecord.id, {
         password: oneTimePassword,
-        phone_confirm: true // Ensure phone is confirmed
+        user_metadata: {
+          ...userRecord.user_metadata,
+          phone: normalizedPhone,
+        }
       });
 
       if (updateError) throw updateError;
     } else {
       // Create new user
       const { error: createError } = await supabaseAdmin.auth.admin.createUser({
-        phone: normalizedPhone,
+        email: authEmail,
         password: oneTimePassword,
-        phone_confirm: true,
+        email_confirm: true,
+        user_metadata: {
+          phone: normalizedPhone,
+        },
       });
 
       if (createError) throw createError;
@@ -109,7 +121,8 @@ export async function POST(request: Request) {
     // The client will immediately use this to call `supabase.auth.signInWithPassword()`
     // This is secure because the payload is encrypted in transit via HTTPS and immediately discarded.
     return NextResponse.json({ 
-      phone: normalizedPhone, 
+      email: authEmail,
+      phone: normalizedPhone,
       password: oneTimePassword 
     });
 

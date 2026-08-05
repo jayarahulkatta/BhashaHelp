@@ -54,7 +54,7 @@ export function AuthScreen({ lang }: AuthScreenProps) {
         throw new Error('Authentication is unavailable right now');
       }
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        phone: res.phone,
+        email: res.email,
         password: res.password
       });
 
@@ -62,7 +62,7 @@ export function AuthScreen({ lang }: AuthScreenProps) {
       
       // Assuming AuthProvider picks up the session automatically and re-renders
     } catch (err) {
-      setError(getErrorMessage(err, t.auth.wrongCode.replace('{{attempts}}', 'some')));
+      setError(getErrorMessage(err, 'Could not sign you in. Please request a new code and try again.'));
     } finally {
       setLoading(false);
     }

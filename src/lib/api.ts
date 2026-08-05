@@ -44,7 +44,7 @@ export const api = {
         throw new Error(error.error || 'Failed to verify OTP');
       }
       // Returns { phone, password } for immediate Supabase sign in
-      return res.json() as Promise<{ phone: string, password: string }>;
+      return res.json() as Promise<{ email: string, phone: string, password: string }>;
     }
   },
 
