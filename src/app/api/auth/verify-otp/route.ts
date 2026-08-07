@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, normalizePhoneNumber } from '@/lib/auth';
-import { getTwoFactorConfig } from '@/lib/config';
+import { getTwoFactorConfig, getGeminiConfig } from '@/lib/config';
 import { getServiceSupabase } from '@/lib/supabase';
 import crypto from 'crypto';
 import { z } from 'zod';
