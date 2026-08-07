@@ -56,8 +56,34 @@ export async function POST(request: Request) {
     // 2. Generate embedding for the English query
     const queryEmbedding = await getEmbedding(englishQuery);
 
-    // 3. Search Supabase using vector similarity
+    // 3. Fetch User Profile
     const supabaseAdmin = getServiceSupabase();
+    let userProfileStr = '';
+    
+    if (userId) {
+      const { data: profile } = await supabaseAdmin
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      if (profile) {
+        const details = [];
+        if (profile.gender) details.push(`Gender: ${profile.gender}`);
+        if (profile.age) details.push(`Age: ${profile.age}`);
+        if (profile.state) details.push(`State: ${profile.state}`);
+        if (profile.category) details.push(`Category: ${profile.category}`);
+        if (profile.is_disabled) details.push(`Disability: Yes`);
+        if (profile.is_minority) details.push(`Minority: Yes`);
+        if (profile.is_student) details.push(`Student: Yes`);
+        
+        if (details.length > 0) {
+          userProfileStr = `\n<user_profile>\nThe user has the following demographic profile:\n${details.join('\n')}\nUse this profile to determine scheme eligibility more accurately. If a scheme requires a certain age, gender, or category, check if the user matches.\n</user_profile>\n`;
+        }
+      }
+    }
+
+    // 4. Search Supabase using vector similarity
     const { data, error: matchError } = await supabaseAdmin.rpc('match_schemes', {
       query_embedding: queryEmbedding,
       match_threshold: 0.60, // Confidence gate
@@ -104,9 +130,9 @@ Last verified: ${s.last_verified_date}
 </scheme>
 `).join('\n');
 
-    const prompt = `
+const prompt = `
 User Language: ${lang}
-
+${userProfileStr}
 <context>
 ${contextString}
 </context>
@@ -115,7 +141,7 @@ ${contextString}
 ${text}
 </query>
 
-Based ONLY on the above <context>, answer the user's <query> in ${lang}. Be concise, supportive, and structure the answer simply. Remember the anti-phishing rules.`;
+Based ONLY on the above <context>, answer the user's <query> in ${lang}. Be concise, supportive, and structure the answer simply. If <user_profile> is provided, use it to personalize the response and determine if they are eligible for the schemes retrieved. Remember the anti-phishing rules.`;
 
     const finalAnswer = await generateText(prompt, SYSTEM_PROMPT);
 

@@ -36,9 +36,7 @@ export async function POST(request: Request) {
     }
 
     // Call 2Factor.in API
-    // The AUTOGEN3 template automatically generates a 6-digit OTP
-    // 2Factor URL format: https://2factor.in/API/V1/${config.apiKey}/SMS/${encodeURIComponent(normalizedPhone)}/AUTOGEN3/OTP1
-    const twoFactorUrl = `https://2factor.in/API/V1/${config.apiKey}/SMS/${encodeURIComponent(normalizedPhone)}/AUTOGEN3/OTP1`;
+    const twoFactorUrl = `https://2factor.in/API/V1/${config.apiKey}/SMS/${encodeURIComponent(normalizedPhone)}/AUTOGEN`;
     
     const response = await fetch(twoFactorUrl, { method: 'GET' });
     const data = await response.json();

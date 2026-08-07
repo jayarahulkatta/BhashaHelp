@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { AuthScreen } from '@/components/AuthScreen';
 import { VoiceInterface } from '@/components/VoiceInterface';
+import { ProfileWizard } from '@/components/ProfileWizard';
 import { Language } from '@/lib/i18n';
 import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
@@ -11,20 +12,37 @@ import { supabase } from '@/lib/supabase';
 export default function Home() {
   const { session, user, isLoading } = useAuth();
   const [lang, setLang] = useState<Language>('te');
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
-    // If user is logged in, fetch their preferred language
+    // If user is logged in, fetch their preferred language and profile status
     if (user && supabase) {
-      supabase
-        .from('user_preferences')
-        .select('preferred_language')
-        .eq('id', user.id)
-        .single()
-        .then(({ data }) => {
-          if (data && data.preferred_language) {
-            setLang(data.preferred_language as Language);
-          }
-        });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setProfileLoading(true);
+      
+      Promise.all([
+        supabase.from('user_preferences').select('preferred_language').eq('id', user.id).single(),
+        api.user.getProfile(user.id)
+      ]).then(([prefRes, profile]) => {
+        if (prefRes.data && prefRes.data.preferred_language) {
+          setLang(prefRes.data.preferred_language as Language);
+        }
+        
+        // If they have any basic field filled, we consider profile completed
+        if (profile && (profile.gender || profile.age || profile.state)) {
+          setHasProfile(true);
+        } else {
+          setHasProfile(false);
+        }
+        
+        setProfileLoading(false);
+      }).catch((err) => {
+        console.error("Failed to load user data:", err);
+        setProfileLoading(false);
+      });
+    } else {
+      setProfileLoading(false);
     }
   }, [user]);
 
@@ -35,7 +53,7 @@ export default function Home() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || profileLoading) {
     return (
       <div className="flex flex-col flex-1 items-center justify-center h-full">
         <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -75,7 +93,11 @@ export default function Home() {
       {/* Main Content routing based on auth state */}
       <div className="flex-1 overflow-hidden flex flex-col relative">
         {session ? (
-          <VoiceInterface lang={lang} />
+          hasProfile ? (
+            <VoiceInterface lang={lang} />
+          ) : (
+            <ProfileWizard onComplete={() => setHasProfile(true)} />
+          )
         ) : (
           <AuthScreen lang={lang} />
         )}
