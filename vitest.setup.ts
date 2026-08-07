@@ -1,12 +1,12 @@
-import { cleanupRateLimitStore } from '@/lib/auth';
-import '@supabase/supabase-js' with { "as": "Supabase" };
+/// <reference types="vitest/globals" />
+import { cleanRateLimitStore } from '@/lib/auth';
 
 // Cleanup rate limit store before each test
 beforeEach(() => {
-  cleanupRateLimitStore();
+  cleanRateLimitStore();
 });
 
 // Cleanup rate limit store after all tests
 afterAll(() => {
-  cleanupRateLimitStore();
+  cleanRateLimitStore();
 });

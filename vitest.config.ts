@@ -1,29 +1,27 @@
 import { defineConfig } from 'vitest/config';
-import path from 'path';
+import os from 'os';
 
 export default defineConfig({
   test: {
-    globalsSetup: true,
-    exclude: [/node_modules/, /\.next\//, /dist/],
+    globals: true,
     coverage: {
-      reports: true,
-      exclude: [/node_modules/, /\.next\//, /dist/],
+      reporter: ['text', 'html'],
+      exclude: ['node_modules', '.next', 'dist'],
       include: ['src/app/**/*.ts', 'src/app/**/*.tsx', 'src/lib/**/*.ts', 'src/lib/**/*.tsx'],
     },
     reporters: ['default', 'html'],
     setupFiles: ['src/setupTests.ts', './vitest.setup.ts'],
-    projectGlobs: [{
-      pattern: '**/__tests__/**/*.ts',
-      ignore: ['**/__tests__/e2e/**/*.ts'],
-    }],
+    include: ['**/__tests__/**/*.ts'],
+    exclude: ['node_modules', '.next', 'dist', '**/__tests__/e2e/**'],
     testTimeout: 120000,
-    maxParallelWorkers: process.env.CI !== undefined ? Math.min(
-      process.env.CI ? parseInt(process.env.CI) : 4,
-      require('os').cpus().length
-    ) : 4,
-    snapshotResolution: 'export',
+    pool: 'threads',
+    maxWorkers: process.env.CI ? Math.min(parseInt(process.env.CI) || 4, os.cpus().length) : 4,
+    clearMocks: true,
+    restoreMocks: true,
   },
-  resolveSpecifier: './vitest.resolve.js',
-  mockClearTimeouts: true,
-  restoreMocks: true,
+  resolve: {
+    alias: {
+      '@': './src/app/components',
+    },
+  },
 });

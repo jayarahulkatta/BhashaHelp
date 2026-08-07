@@ -35,14 +35,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
-    // Get Gemini config for embeddings
-    const geminiConfig = getGeminiConfig();
-    const geminiApiKey = geminiConfig.apiKey;
-    
-    // Optional: Log OTP generation with embeddings for analytics
-    // Note: This is for demonstration. In production, consider a dedicated analytics service.
-    
-// Call 2Factor.in API
+    // Call 2Factor.in API
     // The AUTOGEN3 template automatically generates a 6-digit OTP
     // 2Factor URL format: https://2factor.in/API/V1/${config.apiKey}/SMS/${encodeURIComponent(normalizedPhone)}/AUTOGEN3/OTP1
     const twoFactorUrl = `https://2factor.in/API/V1/${config.apiKey}/SMS/${encodeURIComponent(normalizedPhone)}/AUTOGEN3/OTP1`;
