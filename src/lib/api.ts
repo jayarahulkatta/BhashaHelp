@@ -18,6 +18,18 @@ export interface QueryResponse {
   error?: string;
 }
 
+export interface UserProfile {
+  id?: string;
+  gender?: string | null;
+  age?: number | null;
+  state?: string | null;
+  category?: string | null;
+  is_disabled?: boolean;
+  is_minority?: boolean;
+  is_student?: boolean;
+}
+
+
 export const api = {
   auth: {
     sendOtp: async (phone: string) => {
@@ -104,6 +116,35 @@ export const api = {
       
       if (error) {
         console.error('Failed to save language preference:', error);
+        throw error;
+      }
+    }
+  },
+
+  user: {
+    getProfile: async (userId: string): Promise<UserProfile | null> => {
+      if (!supabase) throw new Error('Supabase client is unavailable');
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        console.error('Failed to get user profile:', error);
+        throw error;
+      }
+      return data || null;
+    },
+
+    updateProfile: async (userId: string, profile: Omit<UserProfile, 'id'>) => {
+      if (!supabase) throw new Error('Supabase client is unavailable');
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({ id: userId, ...profile });
+      
+      if (error) {
+        console.error('Failed to update user profile:', error);
         throw error;
       }
     }

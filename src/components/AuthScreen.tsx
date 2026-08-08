@@ -82,13 +82,14 @@ export function AuthScreen({ lang }: AuthScreenProps) {
               placeholder={t.auth.phonePlaceholder}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full text-lg p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full text-lg p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none"
               disabled={loading}
             />
             <button 
               type="submit"
               disabled={loading}
-              className="w-full py-4 text-lg font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 active:scale-95 transition-transform disabled:opacity-70 flex items-center justify-center gap-2 min-h-[48px]"
+              aria-label="Send OTP code"
+              className="w-full py-4 text-lg font-medium text-white bg-amber-600 rounded-xl hover:bg-amber-700 active:scale-95 transition-transform disabled:opacity-70 flex items-center justify-center gap-2 min-h-[48px] focus:ring-2 focus:ring-amber-500 focus:outline-none"
             >
               <span>📞</span> {loading ? t.auth.sending : t.auth.sendCode}
             </button>
@@ -102,13 +103,14 @@ export function AuthScreen({ lang }: AuthScreenProps) {
               placeholder="123456"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              className="w-full text-lg p-4 text-center tracking-widest rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full text-lg p-4 text-center tracking-widest rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none"
               disabled={loading}
             />
             <button 
               type="submit"
               disabled={loading}
-              className="w-full py-4 text-lg font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 active:scale-95 transition-transform disabled:opacity-70 flex items-center justify-center gap-2 min-h-[48px]"
+              aria-label="Verify OTP code"
+              className="w-full py-4 text-lg font-medium text-white bg-orange-600 rounded-xl hover:bg-orange-700 active:scale-95 transition-transform disabled:opacity-70 flex items-center justify-center gap-2 min-h-[48px] focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <span>✅</span> {loading ? t.auth.checking : t.auth.verifyCode}
             </button>
@@ -116,7 +118,8 @@ export function AuthScreen({ lang }: AuthScreenProps) {
               type="button"
               onClick={() => setStep('phone')}
               disabled={loading}
-              className="w-full py-3 text-blue-600 text-sm hover:underline flex items-center justify-center gap-2 min-h-[48px]"
+              aria-label="Cancel and change phone number"
+              className="w-full py-3 text-amber-700 text-sm hover:underline flex items-center justify-center gap-2 min-h-[48px] focus:ring-2 focus:ring-amber-500 focus:outline-none"
             >
               {t.common.cancel}
             </button>

@@ -35,7 +35,7 @@ async function sarvamPost<T>(path: string, body: Record<string, unknown>): Promi
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      'api-subscription-key': apiKey,
     },
     body: JSON.stringify(body),
   });
@@ -59,19 +59,39 @@ export class SarvamSpeechProvider implements SpeechProvider {
       throw new SpeechServiceError('Audio data is empty', 'EMPTY_RESPONSE');
     }
 
-    const lang = languageHint ? resolveLang(languageHint) : undefined;
+    const apiKey = requireApiKey();
 
-    const data = await sarvamPost<{ transcript: string; language_code: string }>(
-      '/speech-to-text',
-      {
-        input: { audio: audioBase64 },
-        config: {
-          language: lang,
-          model: 'saarika:v2',
-        },
+    // Decode base64 to binary and wrap in a Blob for multipart upload
+    const buffer = Buffer.from(audioBase64, 'base64');
+    const audioBlob = new Blob([buffer], { type: 'audio/webm' });
+
+    // Sarvam STT requires multipart/form-data with field named "file"
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'recording.webm');
+    formData.append('model', 'saarika:v2.5');
+
+    if (languageHint) {
+      formData.append('language_code', resolveLang(languageHint));
+    }
+
+    // Do NOT set Content-Type — fetch sets the multipart boundary automatically
+    const res = await fetch(`${SARVAM_API_URL}/speech-to-text`, {
+      method: 'POST',
+      headers: {
+        'api-subscription-key': apiKey,
       },
-    );
+      body: formData,
+    });
 
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => 'unknown');
+      throw new SpeechServiceError(
+        `Sarvam STT error (${res.status}): ${errorText}`,
+        'API_ERROR',
+      );
+    }
+
+    const data = await res.json() as { transcript: string; language_code: string };
     const detectedLang = REVERSE_LANG_MAP[data.language_code] ?? languageHint ?? 'en';
 
     return {

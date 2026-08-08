@@ -37,12 +37,21 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
         if (transcript.trim()) {
           setConfirmedQuery(transcript);
           setAppState('confirming');
+          
+          // Auto-play the transcribed query via TTS as confirmation
+          api.voice.tts(transcript, lang).then(audioUrl => {
+            if (audioRef.current) {
+              audioRef.current.src = audioUrl;
+              audioRef.current.play().catch(e => console.error("TTS playback failed:", e));
+              setIsPlaying(true);
+            }
+          }).catch(e => console.error("TTS generation failed:", e));
         } else {
           setAppState('idle');
         }
       });
     }
-  }, [isRecording, transcript, appState]);
+  }, [isRecording, transcript, appState, lang]);
 
   const handleMicClick = () => {
     if (isRecording) {
@@ -112,26 +121,26 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
         )}
 
         {(appState === 'recording' || appState === 'confirming') && (
-          <div className="w-full bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-inner">
+          <div className="w-full bg-amber-50 p-6 rounded-2xl border border-amber-200 shadow-inner" role="status" aria-live="polite">
             <p className="text-lg text-slate-800 mb-2 font-medium">
               {appState === 'recording' ? t.states.recording : 'Did you mean:'}
             </p>
-            <p className="text-xl text-blue-900 leading-relaxed min-h-[3rem]">
+            <p className="text-xl text-amber-900 leading-relaxed min-h-[3rem]">
               {appState === 'confirming' ? confirmedQuery : transcript}
             </p>
           </div>
         )}
 
         {appState === 'searching' && (
-          <div className="flex flex-col items-center justify-center p-8 space-y-4">
-            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+          <div className="flex flex-col items-center justify-center p-8 space-y-4" role="status" aria-label="Searching">
+            <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
             <p className="text-lg text-slate-600">{t.states.searching}</p>
           </div>
         )}
 
         {appState === 'result' && (
-          <div className="w-full space-y-6">
-            <div className="bg-green-50 p-6 rounded-2xl border border-green-100 shadow-sm relative">
+          <div className="w-full space-y-6" role="region" aria-label="Search Results">
+            <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100 shadow-sm relative">
               <button 
                 onClick={() => {
                   if (isPlaying) {
@@ -140,23 +149,24 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
                     audioRef.current?.play();
                   }
                 }}
-                className="absolute top-4 right-4 p-3 bg-white rounded-full shadow-sm text-green-700 hover:bg-green-100 active:scale-95 transition-transform min-h-[48px] min-w-[48px] flex items-center justify-center"
+                aria-label={isPlaying ? "Pause audio" : "Play audio"}
+                className="absolute top-4 right-4 p-3 bg-white rounded-full shadow-sm text-orange-700 hover:bg-orange-100 active:scale-95 transition-transform min-h-[48px] min-w-[48px] flex items-center justify-center focus:ring-2 focus:ring-orange-500 focus:outline-none"
               >
                 {isPlaying ? '⏸️' : '🔊'}
               </button>
-              <h3 className="font-semibold text-green-900 mb-4 text-lg pr-12">Answer</h3>
-              <p className="text-lg text-green-950 leading-relaxed whitespace-pre-wrap">{answer}</p>
+              <h3 className="font-semibold text-orange-900 mb-4 text-lg pr-12">Answer</h3>
+              <p className="text-lg text-orange-950 leading-relaxed whitespace-pre-wrap">{answer}</p>
             </div>
 
             {schemes.length > 0 && (
               <div className="space-y-4 mt-8">
                 <h4 className="font-semibold text-slate-800 text-lg border-b pb-2">Related Schemes</h4>
                 {schemes.map((s) => (
-                  <div key={s.id} className="bg-white border rounded-xl p-5 shadow-sm space-y-3">
-                    <h5 className="font-semibold text-lg text-blue-700">{s.name}</h5>
+                  <div key={s.id} className="bg-white border rounded-xl p-5 shadow-sm space-y-3 hover:shadow-md transition-shadow">
+                    <h5 className="font-semibold text-lg text-amber-700">{s.name}</h5>
                     <p className="text-slate-700 line-clamp-3">{s.description}</p>
                     {s.source_url && (
-                      <a href={s.source_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium inline-flex items-center mt-2 p-2 -ml-2 rounded-lg hover:bg-blue-50">
+                      <a href={s.source_url} target="_blank" rel="noopener noreferrer" className="text-amber-600 font-medium inline-flex items-center mt-2 p-2 -ml-2 rounded-lg hover:bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:outline-none" aria-label={`Learn more about ${s.name}`}>
                         Learn More ↗
                       </a>
                     )}
@@ -181,13 +191,15 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
           <div className="flex gap-4">
             <button 
               onClick={cancelQuery}
-              className="flex-1 py-4 text-lg font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 active:scale-95 transition-transform flex justify-center items-center gap-2 min-h-[48px]"
+              aria-label="Re-record your query"
+              className="flex-1 py-4 text-lg font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 active:scale-95 transition-transform flex justify-center items-center gap-2 min-h-[48px] focus:ring-2 focus:ring-slate-500 focus:outline-none"
             >
               <span>❌</span> {t.common.reRecord}
             </button>
             <button 
               onClick={handleSearch}
-              className="flex-1 py-4 text-lg font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 active:scale-95 transition-transform flex justify-center items-center gap-2 min-h-[48px]"
+              aria-label="Search schemes"
+              className="flex-1 py-4 text-lg font-medium text-white bg-amber-600 rounded-xl hover:bg-amber-700 active:scale-95 transition-transform flex justify-center items-center gap-2 min-h-[48px] focus:ring-2 focus:ring-amber-500 focus:outline-none"
             >
               <span>🔍</span> Search
             </button>
@@ -196,12 +208,13 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
           <button 
             onClick={handleMicClick}
             disabled={appState === 'searching'}
-            className={`w-full py-5 text-xl font-semibold text-white rounded-full flex items-center justify-center space-x-3 shadow-lg active:scale-95 transition-all min-h-[64px] ${
+            aria-label={isRecording ? "Stop recording" : "Start recording"}
+            className={`w-full py-5 text-xl font-semibold text-white rounded-full flex items-center justify-center space-x-3 shadow-lg active:scale-95 transition-all min-h-[64px] focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 focus:outline-none ${
               isRecording 
                 ? 'bg-red-500 animate-pulse' 
                 : appState === 'searching' 
                   ? 'bg-slate-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-amber-600 hover:bg-amber-700'
             }`}
           >
             <span className="text-2xl">{isRecording ? '🛑' : '🎤'}</span>
