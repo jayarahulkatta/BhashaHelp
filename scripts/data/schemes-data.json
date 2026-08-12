@@ -1,0 +1,202 @@
+[
+  {
+    "name": "Telangana Chief Minister Overseas Scholarship Scheme (Vidya Nidhi)",
+    "description": "Financial assistance for meritorious SC, ST, BC, EBC, and Minority students from Telangana to pursue higher studies in top foreign universities in countries like USA, UK, Australia, Canada, and Germany.",
+    "eligibility_criteria": "Must be a native of Telangana. Age limit is under 35 years. Family annual income must be below Rs 5,000,000 (5 Lakhs). Must have secured minimum 60% marks in Graduation and obtained admission in an accredited foreign university.",
+    "benefits": "Financial grant up to Rs 2,000,000 (20 Lakhs) towards tuition fees and living expenses, plus one-way economy class airfare and visa processing fees.",
+    "application_process": "Apply online through the Telangana ePASS portal (telanganaepass.cgg.gov.in). Upload GRE/TOEFL/IELTS scorecards, degree certificates, Telangana residence proof, income certificate, and university admission offer letter.",
+    "source_url": "https://telanganaepass.cgg.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Telangana Rythu Bharosa (Investment Support Scheme)",
+    "description": "Flagship agricultural investment support scheme of Telangana government providing direct cash transfer to farmers to purchase seeds, fertilizers, pesticides, and cover field preparation costs.",
+    "eligibility_criteria": "Land-owning farmers in Telangana possessing valid Pattadar Passbooks. Applicable to all categories of farmers including small, marginal, and tenant farmers registered with the Agriculture department.",
+    "benefits": "Financial assistance of Rs 7,500 per acre per crop season (total Rs 15,000 per acre per year) directly credited to the farmer's bank account.",
+    "application_process": "Automatic enrollment for existing Pattadar Passbook holders. New farmers must submit land survey documents, Pattadar Passbook, Aadhaar card, and bank account details to the local Agricultural Extension Officer (AEO).",
+    "source_url": "https://rythubandhu.telangana.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Telangana Kalyana Lakshmi / Shaadi Mubarak Scheme",
+    "description": "Financial welfare scheme aimed at preventing child marriage and easing the financial burden of marriage for poor families belonging to SC, ST, BC, EBC, and Minority communities in Telangana.",
+    "eligibility_criteria": "Must be an unmarried girl residing in Telangana who has completed 18 years of age at the time of marriage. Family annual income must not exceed Rs 200,000 for urban areas or Rs 150,000 for rural areas.",
+    "benefits": "One-time direct bank transfer grant of Rs 100,116 provided at the time of marriage to the bride's mother.",
+    "application_process": "Apply online via the Telangana ePASS portal at least 10 days before the wedding or within 30 days post-marriage. Required documents include bride's age proof, wedding card, Aadhaar cards, and income certificate.",
+    "source_url": "https://telanganaepass.cgg.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Telangana Dalit Bandhu Scheme",
+    "description": "Self-employment and socio-economic empowerment scheme designed to uplift Scheduled Caste (SC) households in Telangana by enabling entrepreneurship across agriculture, transport, retail, and industry sectors.",
+    "eligibility_criteria": "Must belong to a Scheduled Caste (SC) family residing in Telangana. The household must not have any family member currently employed in government service.",
+    "benefits": "Direct financial grant of Rs 1,000,000 (10 Lakhs) per family with 100% subsidy. No bank loan or collateral required; funds are transferred directly to set up chosen business enterprise.",
+    "application_process": "Beneficiary families are selected at Gram Sabha / Ward levels under district collector supervision and SC Corporation guidance. Selected candidates undergo orientation training before fund release.",
+    "source_url": "https://dalitbandhu.telangana.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Rajiv Aarogyasri Health Insurance Scheme (Telangana)",
+    "description": "Comprehensive health insurance and cashless medical treatment scheme for low-income BPL families in Telangana covering major surgeries, critical care, and inpatient treatments.",
+    "eligibility_criteria": "Resident BPL families in Telangana holding a Food Security Card (White Ration Card) or Aarogyasri Card.",
+    "benefits": "Cashless inpatient treatment up to Rs 1,000,000 (10 Lakhs) per family per year across empanelled government and private super-specialty hospitals for over 1,600 procedures.",
+    "application_process": "Present Aarogyasri Card or White Ration Card with Aadhaar at the Aarogyamithra desk at any empanelled hospital. No prior fee payment required.",
+    "source_url": "https://aarogyasri.telangana.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Telangana Mana Ooru - Mana Badi / Amma Badi",
+    "description": "Comprehensive educational infrastructure and quality improvement drive across government and local body schools in Telangana to ensure modern learning facilities.",
+    "eligibility_criteria": "Students enrolled in Class 1 through Class 10 in all Telangana Government and local body schools.",
+    "benefits": "Free dual desks, digital green boards/classrooms, high-quality free school uniforms, textbooks, nutritious mid-day meals, and English medium instruction facilities.",
+    "application_process": "Enrolment is automatic upon seeking admission in any nearby government school in Telangana.",
+    "source_url": "https://schooledu.telangana.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+    "description": "Central Sector Scheme providing income support to landholding farmer families across India to meet agriculture and domestic needs.",
+    "eligibility_criteria": "All landholding farmer families who own cultivable land in India. Excludes high economic status individuals, institutional landholders, active/retired government servants, and income tax payers.",
+    "benefits": "Direct financial benefit of Rs 6,000 per year transferred in three equal installments of Rs 2,000 every four months directly into Aadhaar-seeded bank accounts.",
+    "application_process": "Register online at pmkisan.gov.in using Aadhaar number, mobile number, land record detail (Khata/Khasra), and bank passbook, or apply through local CSC centers.",
+    "source_url": "https://pmkisan.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "PM POSHAN Shakti Nirman (Mid-Day Meal Scheme)",
+    "description": "National flagship school meal scheme providing hot cooked nutritious lunches to primary and upper primary school children to improve enrollment, retention, and nutritional status.",
+    "eligibility_criteria": "Children studying in Classes I to VIII in Government, Government-aided schools, Special Training Centres, and Madrasas across India.",
+    "benefits": "Daily hot cooked meal supplying minimum 450 calories & 12g protein for primary classes, and 700 calories & 20g protein for upper primary classes during school days.",
+    "application_process": "No separate application required. All students enrolled in eligible schools receive meals daily during school hours.",
+    "source_url": "https://pmposhan.education.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "National Means-cum-Merit Scholarship Scheme (NMMSS)",
+    "description": "Central scholarship scheme awarded to meritorious students from economically weaker sections to arrest dropouts at class VIII and encourage them to continue study at secondary stage.",
+    "eligibility_criteria": "Students studying in Class VIII in Government/Aided schools who have secured minimum 55% marks in Class VII (5% relaxation for SC/ST). Parental annual income from all sources must not exceed Rs 350,000.",
+    "benefits": "Scholarship amount of Rs 12,000 per annum (Rs 1,000 per month) for 4 years from Class IX to Class XII.",
+    "application_process": "Apply via the National Scholarship Portal (scholarships.gov.in) and qualify the state-level NMMSS selection examination consisting of MAT and SAT papers.",
+    "source_url": "https://scholarships.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Post Matric Scholarship for SC/ST/OBC Students",
+    "description": "Financial assistance to students from SC, ST, and OBC communities pursuing post-secondary education (Class 11 to PhD) in recognized institutions.",
+    "eligibility_criteria": "Must belong to SC, ST, or OBC category. Annual family income must be below Rs 250,000 for SC/ST or Rs 150,000 for OBC students. Must be pursuing recognized post-matric courses.",
+    "benefits": "Complete course tuition fee reimbursement directly to institution plus monthly maintenance allowance paid directly to student's bank account.",
+    "application_process": "Apply online on National Scholarship Portal or Telangana ePASS portal with caste certificate, income certificate, marksheets, and institution admission receipt.",
+    "source_url": "https://scholarships.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Sukanya Samriddhi Yojana (SSY)",
+    "description": "Government of India small deposit savings scheme for the girl child under 'Beti Bachao Beti Padhao' campaign offering high returns and tax benefits.",
+    "eligibility_criteria": "Girl child who is an Indian resident aged below 10 years. Maximum 2 accounts per family (except in cases of twins/triplets).",
+    "benefits": "Highest interest rate among government savings schemes (8.2%+ p.a.), tax exemption under Section 80C, partial withdrawal up to 50% allowed for higher education once the girl reaches 18 years.",
+    "application_process": "Open account at any India Post Office branch or authorized public/private bank with girl child's birth certificate, guardian's identity and address proof.",
+    "source_url": "https://www.indiapost.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Pradhan Mantri Awas Yojana (PMAY - Housing for All)",
+    "description": "Central welfare flagship program providing financial aid to urban and rural poor households to construct or buy pucca homes with basic amenities.",
+    "eligibility_criteria": "Economically Weaker Section (EWS) or Low Income Group (LIG) families with annual household income up to Rs 300,000 (EWS) / Rs 600,000 (LIG). The family must not own a pucca house anywhere in India.",
+    "benefits": "Direct financial grant up to Rs 120,000 to Rs 267,000 towards home construction or interest subsidy on housing loans.",
+    "application_process": "Apply online at pmaymis.gov.in or through local Gram Panchayat / Municipal Corporation counter with Aadhaar card, income certificate, and land records.",
+    "source_url": "https://pmaymis.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Pradhan Mantri Mudra Yojana (PMMY)",
+    "description": "Credit delivery scheme providing collateral-free micro loans to non-corporate, non-farm small and micro enterprises to encourage entrepreneurship.",
+    "eligibility_criteria": "Small business owners, artisans, shopkeepers, fruit/vegetable vendors, small manufacturers, and self-employed individuals in India.",
+    "benefits": "Collateral-free business loans under 3 tiers: Shishu (up to Rs 50,000), Kishore (Rs 50,000 to Rs 5 Lakhs), and Tarun (Rs 5 Lakhs to Rs 10 Lakhs) at affordable interest rates.",
+    "application_process": "Apply online at jansamarth.in or visit any commercial bank, regional rural bank, microfinance institution with business proposal, KYC documents, and bank statements.",
+    "source_url": "https://www.mudra.org.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "PM Vishwakarma Scheme",
+    "description": "Central scheme providing end-to-end holistic support to traditional artisans and craftspeople working with hand tools across 18 traditional trades.",
+    "eligibility_criteria": "Artisans or craftspeople working manually in one of 18 traditional trades (carpenter, blacksmith, goldsmith, potter, tailor, cobbler, mason, weaver, etc.). Minimum age 18 years; restricted to one member per family.",
+    "benefits": "PM Vishwakarma Certificate & ID Card, 5-7 days basic skill training with Rs 500/day stipend, Rs 15,000 toolkit grant, and collateral-free credit up to Rs 300,000 at concessional 5% interest rate.",
+    "application_process": "Register via CSC counters on pmvishwakarma.gov.in using Aadhaar, bank details, and trade verification.",
+    "source_url": "https://pmvishwakarma.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Ayushman Bharat - Pradhan Mantri Jan Arogya Yojana (PM-JAY)",
+    "description": "World's largest government-funded health assurance scheme offering free cashless inpatient secondary and tertiary hospital care for underprivileged Indian families.",
+    "eligibility_criteria": "Identified deprived rural households and specific occupational urban worker categories based on Socio-Economic Caste Census (SECC 2011) data.",
+    "benefits": "Cashless health coverage up to Rs 500,000 (5 Lakhs) per family per year for secondary and tertiary care hospitalization in network public and private hospitals across India.",
+    "application_process": "Check eligibility on beneficiary.nha.gov.in or visit any empanelled hospital carrying Aadhaar card and Ration card to generate Ayushman Card at the Ayushman Mitra counter.",
+    "source_url": "https://nha.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Pradhan Mantri Matru Vandana Yojana (PMMVY)",
+    "description": "Maternity benefit cash incentive program directly assisting pregnant women and lactating mothers for improved health and nutrition during pregnancy and childbirth.",
+    "eligibility_criteria": "Pregnant Women and Lactating Mothers (PW&LM) for first child and second child (if second child is a girl). Excludes women employed with Central/State Government or PSUs.",
+    "benefits": "Direct cash transfer incentive of Rs 5,000 (in two installments) directly transferred to the mother's bank account upon early registration and institutional childbirth.",
+    "application_process": "Register at the local Anganwadi Centre (AWC) or healthcare facility or apply online via pmmvy.nic.in with ANC card, Aadhaar card, and bank passbook.",
+    "source_url": "https://pmmvy.nic.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Atal Pension Yojana (APY)",
+    "description": "Guaranteed pension scheme for workers in the unorganized sector providing financial security and regular income post-retirement.",
+    "eligibility_criteria": "All Indian citizens aged between 18 and 40 years possessing a savings bank account. Must not be a member of any statutory social security scheme or an income tax payer.",
+    "benefits": "Guaranteed monthly pension between Rs 1,000 to Rs 5,000 starting from 60 years of age depending on contribution level. Same pension continues to spouse upon subscriber's death.",
+    "application_process": "Fill the APY registration form at your bank branch or subscribe directly online via net banking / mobile banking app of your bank.",
+    "source_url": "https://www.npscra.nsdl.co.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
+    "description": "Government-backed one-year renewable life insurance scheme offering affordable life cover for death due to any cause.",
+    "eligibility_criteria": "Indian citizens aged 18 to 50 years with a savings bank or post office account and auto-debit authorization.",
+    "benefits": "Life insurance sum assured of Rs 200,000 (2 Lakhs) payable to nominee in case of subscriber's death due to any reason, for an annual premium of Rs 436.",
+    "application_process": "Enroll through net banking or submit a simple consent form for auto-debit at your bank branch.",
+    "source_url": "https://www.financialservices.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Pradhan Mantri Suraksha Bima Yojana (PMSBY)",
+    "description": "Accident insurance scheme providing financial protection against accidental death or disability at an extremely low annual premium.",
+    "eligibility_criteria": "Indian citizens aged 18 to 70 years having a savings bank account with auto-debit consent.",
+    "benefits": "Insurance cover of Rs 200,000 (2 Lakhs) for accidental death or full disability, and Rs 100,000 (1 Lakh) for partial permanent disability, for a premium of just Rs 20 per year.",
+    "application_process": "Enable auto-debit via net banking or fill out the PMSBY application form at your bank branch.",
+    "source_url": "https://www.financialservices.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  },
+  {
+    "name": "Pradhan Mantri Jan Dhan Yojana (PMJDY)",
+    "description": "National Mission for Financial Inclusion providing universal access to banking facilities with zero minimum balance requirement.",
+    "eligibility_criteria": "Any Indian resident aged 10 years or above who does not already hold a basic savings bank account.",
+    "benefits": "Zero balance account, free RuPay debit card, built-in Rs 200,000 accidental insurance cover, direct benefit transfer (DBT) eligibility, and Rs 10,000 overdraft facility after 6 months of satisfactory account operation.",
+    "application_process": "Visit any bank branch or Bank Mitra kiosk with Aadhaar card or any officially valid identity document to open account instantly.",
+    "source_url": "https://pmjdy.gov.in",
+    "last_verified_date": "2026-08-01",
+    "is_active": true
+  }
+]

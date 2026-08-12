@@ -6,25 +6,51 @@ import { useAuth } from './AuthProvider';
 
 interface ProfileWizardProps {
   onComplete: () => void;
+  /** If true, the final button says "Save Changes" and the wizard feels like editing */
+  isEditing?: boolean;
 }
 
-export function ProfileWizard({ onComplete }: ProfileWizardProps) {
+export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardProps) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [prefilling, setPrefilling] = useState(isEditing);
   const [error, setError] = useState('');
   
   const [profile, setProfile] = useState<Omit<UserProfile, 'id'>>({
     gender: null,
     age: null,
-    state: null,
+    state: 'Telangana',
     category: null,
-    is_disabled: false,
+    area: null,
+    has_disability: false,
+    disability_percentage: null,
     is_minority: false,
     is_student: false,
   });
 
   const totalSteps = 4;
+
+  // Pre-load existing profile when editing so fields are pre-filled
+  React.useEffect(() => {
+    if (!isEditing || !user) return;
+    api.user.getProfile(user.id).then(existing => {
+      if (existing) {
+        setProfile({
+          gender: existing.gender ?? null,
+          age: existing.age ?? null,
+          state: existing.state ?? 'Telangana',
+          category: existing.category ?? null,
+          area: existing.area ?? null,
+          has_disability: existing.has_disability ?? false,
+          disability_percentage: existing.disability_percentage ?? null,
+          is_minority: existing.is_minority ?? false,
+          is_student: existing.is_student ?? false,
+        });
+      }
+      setPrefilling(false);
+    }).catch(() => setPrefilling(false));
+  }, [isEditing, user]);
 
   const handleNext = () => {
     if (step < totalSteps) setStep(step + 1);
@@ -36,14 +62,14 @@ export function ProfileWizard({ onComplete }: ProfileWizardProps) {
 
   const handleSave = async () => {
     if (!user) return;
-    setLoading(true);
+    setSaving(true);
     setError('');
     try {
       await api.user.updateProfile(user.id, profile);
       onComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save profile');
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -57,6 +83,14 @@ export function ProfileWizard({ onComplete }: ProfileWizardProps) {
   return (
     <div className="flex flex-col flex-1 items-center justify-center p-6 w-full max-w-sm mx-auto bg-amber-50 rounded-2xl shadow-sm border border-amber-100 my-8 relative overflow-hidden">
       
+      {/* Pre-fill loading spinner for edit mode */}
+      {prefilling && (
+        <div className="flex items-center justify-center py-16">
+          <div className="w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin" />
+        </div>
+      )}
+
+      {!prefilling && <>
       {/* Progress Stepper */}
       <div className="w-full mb-8 flex items-center justify-between px-2">
         {Array.from({ length: totalSteps }).map((_, idx) => (
@@ -96,6 +130,12 @@ export function ProfileWizard({ onComplete }: ProfileWizardProps) {
                   <option value="Female">Female</option>
                   <option value="Transgender">Transgender</option>
                   <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-amber-900 mb-1">Area</label>
+                <select className="w-full p-4 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-500 outline-none" value={profile.area || ''} onChange={e => setProfile({...profile, area: (e.target.value || null) as UserProfile['area']})}>
+                  <option value="">Select Area</option><option value="rural">Rural</option><option value="urban">Urban</option>
                 </select>
               </div>
               
@@ -168,8 +208,8 @@ export function ProfileWizard({ onComplete }: ProfileWizardProps) {
                 <input 
                   type="checkbox" 
                   className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
-                  checked={profile.is_disabled}
-                  onChange={e => setProfile({...profile, is_disabled: e.target.checked})}
+                  checked={profile.has_disability}
+                  onChange={e => setProfile({...profile, has_disability: e.target.checked})}
                 />
                 <span className="ml-3 text-amber-900 font-medium">I have a Disability (Divyang)</span>
               </label>
@@ -223,10 +263,10 @@ export function ProfileWizard({ onComplete }: ProfileWizardProps) {
           ) : (
             <button 
               onClick={handleSave}
-              disabled={loading}
-              className="w-full py-4 text-lg font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 active:scale-95 transition-all min-h-[48px] flex items-center justify-center gap-2"
+              disabled={saving}
+              className="w-full py-4 text-lg font-medium text-white bg-amber-600 rounded-xl hover:bg-amber-700 active:scale-95 transition-all min-h-[48px] flex items-center justify-center gap-2"
             >
-              {loading ? 'Saving...' : 'Start Finding Schemes'}
+              {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Start Finding Schemes'}
             </button>
           )}
         </div>
@@ -241,6 +281,7 @@ export function ProfileWizard({ onComplete }: ProfileWizardProps) {
         )}
       </div>
 
+      </>}
     </div>
   );
 }

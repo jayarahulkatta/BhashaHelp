@@ -24,7 +24,9 @@ export interface UserProfile {
   age?: number | null;
   state?: string | null;
   category?: string | null;
-  is_disabled?: boolean;
+  area?: 'urban' | 'rural' | null;
+  has_disability?: boolean;
+  disability_percentage?: number | null;
   is_minority?: boolean;
   is_student?: boolean;
 }
@@ -62,10 +64,15 @@ export const api = {
 
   query: {
     search: async (text: string, lang: Language, userId?: string): Promise<QueryResponse> => {
+      // Kept for source compatibility with older callers; identity now comes from the session token.
+      void userId;
+      if (!supabase) throw new Error('Supabase client is unavailable');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Please sign in to search for schemes');
       const res = await fetch('/api/query', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, lang, userId })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ text, lang })
       });
       if (!res.ok) {
         const error = await res.json();
@@ -125,7 +132,7 @@ export const api = {
     getProfile: async (userId: string): Promise<UserProfile | null> => {
       if (!supabase) throw new Error('Supabase client is unavailable');
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('user_preferences')
         .select('*')
         .eq('id', userId)
         .single();
@@ -140,8 +147,8 @@ export const api = {
     updateProfile: async (userId: string, profile: Omit<UserProfile, 'id'>) => {
       if (!supabase) throw new Error('Supabase client is unavailable');
       const { error } = await supabase
-        .from('user_profiles')
-        .upsert({ id: userId, ...profile });
+        .from('user_preferences')
+        .upsert({ id: userId, ...profile, profile_completed_at: new Date().toISOString() });
       
       if (error) {
         console.error('Failed to update user profile:', error);

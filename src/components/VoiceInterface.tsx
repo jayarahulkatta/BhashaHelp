@@ -140,7 +140,7 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
 
         {appState === 'result' && (
           <div className="w-full space-y-6" role="region" aria-label="Search Results">
-            <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100 shadow-sm relative">
+            <div className="bg-amber-50 p-6 rounded-2xl border border-amber-200 shadow-sm relative">
               <button 
                 onClick={() => {
                   if (isPlaying) {
@@ -150,20 +150,20 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
                   }
                 }}
                 aria-label={isPlaying ? "Pause audio" : "Play audio"}
-                className="absolute top-4 right-4 p-3 bg-white rounded-full shadow-sm text-orange-700 hover:bg-orange-100 active:scale-95 transition-transform min-h-[48px] min-w-[48px] flex items-center justify-center focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                className="absolute top-4 right-4 p-3 bg-white rounded-full shadow-sm text-amber-700 hover:bg-amber-100 active:scale-95 transition-transform min-h-[48px] min-w-[48px] flex items-center justify-center focus:ring-2 focus:ring-amber-500 focus:outline-none"
               >
                 {isPlaying ? '⏸️' : '🔊'}
               </button>
-              <h3 className="font-semibold text-orange-900 mb-4 text-lg pr-12">Answer</h3>
-              <p className="text-lg text-orange-950 leading-relaxed whitespace-pre-wrap">{answer}</p>
+              <h3 className="font-semibold text-amber-900 mb-4 text-lg pr-12">Answer</h3>
+              <p className="text-lg text-amber-950 leading-relaxed whitespace-pre-wrap">{answer}</p>
             </div>
 
             {schemes.length > 0 && (
               <div className="space-y-4 mt-8">
-                <h4 className="font-semibold text-slate-800 text-lg border-b pb-2">Related Schemes</h4>
+                <h4 className="font-semibold text-slate-800 text-lg border-b border-amber-100 pb-2">Related Schemes</h4>
                 {schemes.map((s) => (
-                  <div key={s.id} className="bg-white border rounded-xl p-5 shadow-sm space-y-3 hover:shadow-md transition-shadow">
-                    <h5 className="font-semibold text-lg text-amber-700">{s.name}</h5>
+                  <div key={s.id} className="bg-white border border-amber-100 rounded-xl p-5 shadow-sm space-y-3 hover:shadow-md transition-shadow">
+                    <h5 className="font-semibold text-lg text-amber-800">{s.name}</h5>
                     <p className="text-slate-700 line-clamp-3">{s.description}</p>
                     {s.source_url && (
                       <a href={s.source_url} target="_blank" rel="noopener noreferrer" className="text-amber-600 font-medium inline-flex items-center mt-2 p-2 -ml-2 rounded-lg hover:bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:outline-none" aria-label={`Learn more about ${s.name}`}>
@@ -186,13 +186,13 @@ export function VoiceInterface({ lang }: VoiceInterfaceProps) {
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.05)]">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-amber-100 shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.05)]">
         {appState === 'confirming' ? (
           <div className="flex gap-4">
             <button 
               onClick={cancelQuery}
               aria-label="Re-record your query"
-              className="flex-1 py-4 text-lg font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 active:scale-95 transition-transform flex justify-center items-center gap-2 min-h-[48px] focus:ring-2 focus:ring-slate-500 focus:outline-none"
+              className="flex-1 py-4 text-lg font-medium text-amber-900 bg-amber-100 rounded-xl hover:bg-amber-200 active:scale-95 transition-transform flex justify-center items-center gap-2 min-h-[48px] focus:ring-2 focus:ring-amber-500 focus:outline-none"
             >
               <span>❌</span> {t.common.reRecord}
             </button>

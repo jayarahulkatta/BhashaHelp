@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed": "npx tsx scripts/seed-schemes.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -32,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
+    "tsx": "^4.19.3",
     "typescript": "^5",
     "vitest": "^4.1.10"
   },

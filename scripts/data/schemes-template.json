@@ -1,0 +1,23 @@
+{
+  "schemes": [
+    {
+      "scheme_code": "TG-EXAMPLE-001",
+      "name_en": "Example scheme — replace with curator-verified content",
+      "category": "Benefits & Social Development",
+      "level": "state",
+      "applicable_states": ["Telangana"],
+      "description_en": "Use only information verified from the official source.",
+      "benefits_en": "Describe the verified benefit.",
+      "application_process_en": "Describe the official application process.",
+      "required_documents": [],
+      "official_url": "https://www.myscheme.gov.in",
+      "source": "myscheme",
+      "eligibility_criteria": {},
+      "last_verified_at": "2026-08-12",
+      "verified_by": "curator-id",
+      "translations": [
+        { "language_code": "en", "name": "Example scheme", "description": "Verified description.", "benefits": "Verified benefit.", "eligibility_summary": "Check the official source for eligibility." }
+      ]
+    }
+  ]
+}
