@@ -47,12 +47,12 @@ create table schemes (
   source_url text,
   last_verified_date date not null,
   is_active boolean default true not null,
-  embedding vector(768), -- For Gemini's gemini-embedding-001 (scaled to 768)
+  content_embedding vector(768), -- For Gemini's gemini-embedding-001 (scaled to 768)
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 -- Create HNSW index for fast nearest-neighbor search
-create index on schemes using hnsw (embedding vector_cosine_ops);
+create index on schemes using hnsw (content_embedding vector_cosine_ops);
 
 alter table schemes enable row level security;
 create policy "Anyone can read active schemes" on schemes for select using (is_active = true or is_admin());
@@ -89,28 +89,30 @@ as $$
     application_process,
     source_url,
     last_verified_date,
-    1 - (schemes.embedding <=> query_embedding) as similarity
+    1 - (schemes.content_embedding <=> query_embedding) as similarity
   from schemes
-  where is_active = true and 1 - (schemes.embedding <=> query_embedding) > match_threshold
-  order by schemes.embedding <=> query_embedding
+  where is_active = true and 1 - (schemes.content_embedding <=> query_embedding) > match_threshold
+  order by schemes.content_embedding <=> query_embedding
   limit match_count;
 $$;
 
--- 4. Query History
-create table query_history (
+-- 4. Query Logs
+create table query_logs (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete cascade not null,
-  query_text text not null,
-  language text not null,
+  user_id uuid references auth.users(id) on delete set null,
+  query_text_raw text,
+  query_language text check (query_language in ('en', 'hi', 'te')),
+  retrieved_scheme_ids uuid[] not null default array[]::uuid[],
+  top_similarity_score numeric,
+  confidence_flag text not null check (confidence_flag in ('confident', 'low_confidence', 'no_match')),
   response_text text not null,
-  schemes_retrieved jsonb, -- Array of scheme IDs and their similarity scores
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
-create index query_history_user_id_idx on query_history (user_id);
-alter table query_history enable row level security;
-create policy "Users can read own queries" on query_history for select using ((select auth.uid()) = user_id);
-create policy "Users can insert own queries" on query_history for insert with check ((select auth.uid()) = user_id);
--- No update or delete policies for query history to maintain an immutable log for the user.
+create index query_logs_confidence_idx on query_logs (confidence_flag, created_at desc);
+alter table query_logs enable row level security;
+create policy "Users can read own query logs" on query_logs for select using ((select auth.uid()) = user_id);
+create policy "Users can insert own query logs" on query_logs for insert with check ((select auth.uid()) = user_id);
+-- No update or delete policies for query logs to maintain an immutable log.
 
 -- 5. Scheme Audit Log
 create table scheme_audit_log (
@@ -154,7 +156,7 @@ revoke execute on function public.log_scheme_changes() from public, anon, authen
 grant usage on schema public to anon, authenticated, service_role;
 grant select on public.schemes to anon, authenticated;
 grant select, insert, update on public.user_preferences to authenticated;
-grant select, insert on public.query_history to authenticated;
+grant select, insert on public.query_logs to authenticated;
 grant select on public.user_roles to authenticated;
 grant select on public.scheme_audit_log to authenticated;
 grant all on all tables in schema public to service_role;

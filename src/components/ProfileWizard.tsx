@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { api, UserProfile } from '@/lib/api';
 import { useAuth } from './AuthProvider';
+import { useLanguage } from './LanguageProvider';
 
 interface ProfileWizardProps {
   onComplete: () => void;
@@ -12,6 +13,7 @@ interface ProfileWizardProps {
 
 export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [prefilling, setPrefilling] = useState(isEditing);
@@ -114,38 +116,38 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
       <div className="w-full flex-1 flex flex-col justify-center">
         {step === 1 && (
           <div className="space-y-6 animate-in slide-in-from-right fade-in duration-300">
-            <h2 className="text-2xl font-bold text-amber-950">Basic Details</h2>
-            <p className="text-amber-800">Help us find schemes perfect for you.</p>
+            <h2 className="text-2xl font-bold text-amber-950">{t('wizard.step1Title')}</h2>
+            <p className="text-amber-800">{t('wizard.step1Desc')}</p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-amber-900 mb-1">Gender</label>
+                <label className="block text-sm font-medium text-amber-900 mb-1">{t('wizard.gender')}</label>
                 <select 
                   className="w-full p-4 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-500 outline-none"
                   value={profile.gender || ''}
                   onChange={e => setProfile({...profile, gender: e.target.value})}
                 >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Transgender">Transgender</option>
-                  <option value="Other">Other</option>
+                  <option value="">{t('wizard.selectGender')}</option>
+                  <option value="Male">{t('wizard.male')}</option>
+                  <option value="Female">{t('wizard.female')}</option>
+                  <option value="Transgender">{t('wizard.transgender')}</option>
+                  <option value="Other">{t('wizard.other')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-amber-900 mb-1">Area</label>
+                <label className="block text-sm font-medium text-amber-900 mb-1">{t('wizard.area')}</label>
                 <select className="w-full p-4 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-500 outline-none" value={profile.area || ''} onChange={e => setProfile({...profile, area: (e.target.value || null) as UserProfile['area']})}>
-                  <option value="">Select Area</option><option value="rural">Rural</option><option value="urban">Urban</option>
+                  <option value="">{t('wizard.selectArea')}</option><option value="rural">{t('wizard.rural')}</option><option value="urban">{t('wizard.urban')}</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-amber-900 mb-1">Age</label>
+                <label className="block text-sm font-medium text-amber-900 mb-1">{t('wizard.age')}</label>
                 <input 
                   type="number" 
                   min="0" max="120"
                   className="w-full p-4 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-500 outline-none"
-                  placeholder="Enter your age"
+                  placeholder={t('wizard.agePlaceholder')}
                   value={profile.age || ''}
                   onChange={e => setProfile({...profile, age: parseInt(e.target.value) || null})}
                 />
@@ -156,32 +158,32 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
 
         {step === 2 && (
           <div className="space-y-6 animate-in slide-in-from-right fade-in duration-300">
-            <h2 className="text-2xl font-bold text-amber-950">Location & Category</h2>
+            <h2 className="text-2xl font-bold text-amber-950">{t('wizard.step2Title')}</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-amber-900 mb-1">State / Area</label>
+                <label className="block text-sm font-medium text-amber-900 mb-1">{t('wizard.state')}</label>
                 <input 
                   type="text" 
                   className="w-full p-4 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-500 outline-none"
-                  placeholder="e.g. Telangana, Maharashtra"
+                  placeholder={t('wizard.statePlaceholder')}
                   value={profile.state || ''}
                   onChange={e => setProfile({...profile, state: e.target.value})}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-amber-900 mb-1">Social Category</label>
+                <label className="block text-sm font-medium text-amber-900 mb-1">{t('wizard.category')}</label>
                 <select 
                   className="w-full p-4 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-500 outline-none"
                   value={profile.category || ''}
                   onChange={e => setProfile({...profile, category: e.target.value})}
                 >
-                  <option value="">Select Category</option>
-                  <option value="General">General</option>
-                  <option value="OBC">OBC</option>
-                  <option value="SC">SC</option>
-                  <option value="ST">ST</option>
+                  <option value="">{t('wizard.selectCategory')}</option>
+                  <option value="General">{t('wizard.general')}</option>
+                  <option value="OBC">{t('wizard.obc')}</option>
+                  <option value="SC">{t('wizard.sc')}</option>
+                  <option value="ST">{t('wizard.st')}</option>
                 </select>
               </div>
             </div>
@@ -190,8 +192,8 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
 
         {step === 3 && (
           <div className="space-y-6 animate-in slide-in-from-right fade-in duration-300">
-            <h2 className="text-2xl font-bold text-amber-950">Additional Info</h2>
-            <p className="text-amber-800 text-sm mb-4">Many schemes target specific groups.</p>
+            <h2 className="text-2xl font-bold text-amber-950">{t('wizard.step3Title')}</h2>
+            <p className="text-amber-800 text-sm mb-4">{t('wizard.step3Desc')}</p>
             
             <div className="space-y-4">
               <label className="flex items-center p-4 bg-white border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-50 transition-colors">
@@ -201,7 +203,7 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
                   checked={profile.is_student}
                   onChange={e => setProfile({...profile, is_student: e.target.checked})}
                 />
-                <span className="ml-3 text-amber-900 font-medium">I am a Student</span>
+                <span className="ml-3 text-amber-900 font-medium">{t('wizard.isStudent')}</span>
               </label>
 
               <label className="flex items-center p-4 bg-white border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-50 transition-colors">
@@ -211,7 +213,7 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
                   checked={profile.has_disability}
                   onChange={e => setProfile({...profile, has_disability: e.target.checked})}
                 />
-                <span className="ml-3 text-amber-900 font-medium">I have a Disability (Divyang)</span>
+                <span className="ml-3 text-amber-900 font-medium">{t('wizard.isDisability')}</span>
               </label>
 
               <label className="flex items-center p-4 bg-white border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-50 transition-colors">
@@ -221,7 +223,7 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
                   checked={profile.is_minority}
                   onChange={e => setProfile({...profile, is_minority: e.target.checked})}
                 />
-                <span className="ml-3 text-amber-900 font-medium">I belong to a Minority group</span>
+                <span className="ml-3 text-amber-900 font-medium">{t('wizard.isMinority')}</span>
               </label>
             </div>
           </div>
@@ -230,8 +232,8 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
         {step === 4 && (
           <div className="space-y-6 animate-in slide-in-from-right fade-in duration-300 text-center">
             <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-amber-950">All Set!</h2>
-            <p className="text-amber-800">Your profile is ready. We will use this to find the best schemes for you.</p>
+            <h2 className="text-2xl font-bold text-amber-950">{t('wizard.step4Title')}</h2>
+            <p className="text-amber-800">{t('wizard.step4Desc')}</p>
           </div>
         )}
 
@@ -249,7 +251,7 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
               onClick={handleBack}
               className="flex-1 py-4 text-lg font-medium text-amber-900 bg-amber-200 rounded-xl hover:bg-amber-300 active:scale-95 transition-all min-h-[48px]"
             >
-              Back
+              {t('common.back')}
             </button>
           )}
           
@@ -258,7 +260,7 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
               onClick={handleNext}
               className="flex-[2] py-4 text-lg font-medium text-white bg-amber-600 rounded-xl hover:bg-amber-700 active:scale-95 transition-all min-h-[48px]"
             >
-              Next
+              {t('common.next')}
             </button>
           ) : (
             <button 
@@ -266,7 +268,7 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
               disabled={saving}
               className="w-full py-4 text-lg font-medium text-white bg-amber-600 rounded-xl hover:bg-amber-700 active:scale-95 transition-all min-h-[48px] flex items-center justify-center gap-2"
             >
-              {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Start Finding Schemes'}
+              {saving ? t('wizard.saving') : isEditing ? t('common.save') : t('wizard.startFinding')}
             </button>
           )}
         </div>
@@ -276,7 +278,7 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
             onClick={skipWizard}
             className="text-amber-700 text-sm hover:underline py-2"
           >
-            Skip for now
+            {t('common.skip')}
           </button>
         )}
       </div>

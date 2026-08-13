@@ -35,7 +35,7 @@ Open `http://localhost:3000`.
 ## Supabase Requirements
 
 - Enable `vector` and `pgcrypto` extensions.
-- Create the `schemes`, `user_preferences`, `query_history`, `user_roles`, and `scheme_audit_log` tables from `supabase/schema.sql`.
+- Create the `schemes`, `user_preferences`, `query_logs`, `user_roles`, and `scheme_audit_log` tables from `supabase/schema.sql`.
 - Confirm RLS is enabled on every table.
 - Confirm `match_schemes` returns `source_url` and `last_verified_date`, because the UI and answer prompt use both fields.
 

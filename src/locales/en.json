@@ -9,7 +9,13 @@
     "no": "No",
     "cancel": "Cancel",
     "error": "Error",
-    "retry": "Try Again"
+    "retry": "Try Again",
+    "signOut": "Sign Out",
+    "back": "Back",
+    "next": "Next",
+    "save": "Save Changes",
+    "skip": "Skip for now",
+    "search": "Search"
   },
   "errors": {
     "network": "No internet connection. Please try again when connected.",
@@ -20,10 +26,13 @@
     "generic": "Something went wrong. Please try again."
   },
   "states": {
+    "idle": "Ready to listen",
     "recording": "Listening...",
     "transcribing": "Understanding your question...",
+    "thinking": "Thinking...",
     "searching": "Looking for schemes...",
-    "answering": "Preparing your answer..."
+    "answering": "Preparing your answer...",
+    "speaking": "Speaking..."
   },
   "auth": {
     "phonePlaceholder": "Phone Number",
@@ -34,5 +43,66 @@
     "checking": "Checking your code...",
     "wrongCode": "Wrong code. You have {{attempts}} tries left.",
     "resend": "Resend Code"
+  },
+  "wizard": {
+    "step1Title": "Basic Details",
+    "step1Desc": "Help us find schemes perfect for you.",
+    "gender": "Gender",
+    "selectGender": "Select Gender",
+    "male": "Male",
+    "female": "Female",
+    "transgender": "Transgender",
+    "other": "Other",
+    "area": "Area",
+    "selectArea": "Select Area",
+    "rural": "Rural",
+    "urban": "Urban",
+    "age": "Age",
+    "agePlaceholder": "Enter your age",
+    "step2Title": "Location & Category",
+    "state": "State / Area",
+    "statePlaceholder": "e.g. Telangana, Maharashtra",
+    "category": "Social Category",
+    "selectCategory": "Select Category",
+    "general": "General",
+    "obc": "OBC",
+    "sc": "SC",
+    "st": "ST",
+    "step3Title": "Additional Info",
+    "step3Desc": "Many schemes target specific groups.",
+    "isStudent": "I am a Student",
+    "isDisability": "I have a Disability (Divyang)",
+    "isMinority": "I belong to a Minority group",
+    "step4Title": "All Set!",
+    "step4Desc": "Your profile is ready. We will use this to find the best schemes for you.",
+    "startFinding": "Start Finding Schemes",
+    "saving": "Saving..."
+  },
+  "results": {
+    "mySchemes": "📋 My Schemes",
+    "askQuestion": "🎤 Ask a Question",
+    "editDetails": "✏️ Edit details",
+    "noProfileDetails": "No profile details set",
+    "findingSchemes": "Finding schemes for you…",
+    "couldNotLoad": "Could not load schemes",
+    "summary": "Summary",
+    "noSchemesFound": "No schemes found yet",
+    "noSchemesHint": "Try updating your profile details or use the Ask a Question tab to search more specifically.",
+    "schemesFound": "{{count}} scheme(s) found",
+    "likelyEligible": "✓ Likely eligible",
+    "maybeEligible": "? May be eligible",
+    "whoCanApply": "Who can apply",
+    "benefits": "Benefits",
+    "howToApply": "How to apply",
+    "showDetails": "Show details ↓",
+    "showLess": "Show less ↑",
+    "officialPortal": "Official portal ↗",
+    "relatedSchemes": "Related Schemes"
+  },
+  "voice": {
+    "didYouMean": "Did you mean:",
+    "answerHeading": "Answer",
+    "learnMore": "Learn More ↗",
+    "typeMessage": "Type a message..."
   }
 }

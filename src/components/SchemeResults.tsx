@@ -2,12 +2,11 @@
 
 import React, { useState, useRef } from 'react';
 import { api, Scheme, UserProfile } from '@/lib/api';
-import { Language } from '@/lib/i18n';
 import { useAuth } from './AuthProvider';
 import { VoiceInterface } from './VoiceInterface';
+import { useLanguage } from './LanguageProvider';
 
 interface SchemeResultsProps {
-  lang: Language;
   profile: UserProfile;
   onEditProfile: () => void;
 }
@@ -54,28 +53,30 @@ function guessEligibility(scheme: Scheme, profile: UserProfile): 'likely' | 'may
 }
 
 function EligibilityBadge({ level }: { level: 'likely' | 'maybe' | null }) {
+  const { t } = useLanguage();
   if (!level) return null;
   if (level === 'likely') {
     return (
       <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-        ✓ Likely eligible
+        {t('results.likelyEligible')}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs font-medium bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
-      ? May be eligible
+      {t('results.maybeEligible')}
     </span>
   );
 }
 
 function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile }) {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const eligibility = guessEligibility(scheme, profile);
 
   return (
-    <article className="bg-white border border-amber-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-      <div className="p-5">
+    <article className="bg-white border border-amber-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
+      <div className="p-5 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="font-semibold text-base text-amber-950 leading-snug flex-1">{scheme.name}</h3>
           <EligibilityBadge level={eligibility} />
@@ -87,26 +88,26 @@ function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile 
         {expanded && (
           <div className="mt-4 space-y-3 text-sm">
             <div>
-              <p className="font-medium text-amber-900 mb-1">Who can apply</p>
+              <p className="font-medium text-amber-900 mb-1">{t('results.whoCanApply')}</p>
               <p className="text-slate-600 leading-relaxed">{scheme.eligibility_criteria}</p>
             </div>
             <div>
-              <p className="font-medium text-amber-900 mb-1">Benefits</p>
+              <p className="font-medium text-amber-900 mb-1">{t('results.benefits')}</p>
               <p className="text-slate-600 leading-relaxed">{scheme.benefits}</p>
             </div>
             <div>
-              <p className="font-medium text-amber-900 mb-1">How to apply</p>
+              <p className="font-medium text-amber-900 mb-1">{t('results.howToApply')}</p>
               <p className="text-slate-600 leading-relaxed">{scheme.application_process}</p>
             </div>
           </div>
         )}
 
-        <div className="mt-4 flex items-center gap-3 flex-wrap">
+        <div className="mt-auto pt-4 flex items-center gap-3 flex-wrap">
           <button
             onClick={() => setExpanded(!expanded)}
             className="text-sm font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded"
           >
-            {expanded ? 'Show less ↑' : 'Show details ↓'}
+            {expanded ? t('results.showLess') : t('results.showDetails')}
           </button>
           {scheme.source_url && (
             <a
@@ -116,7 +117,7 @@ function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile 
               className="text-sm font-medium text-slate-500 hover:text-amber-700 inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded px-1"
               aria-label={`Apply for ${scheme.name} on official portal`}
             >
-              Official portal ↗
+              {t('results.officialPortal')}
             </a>
           )}
         </div>
@@ -125,8 +126,9 @@ function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile 
   );
 }
 
-export function SchemeResults({ lang, profile, onEditProfile }: SchemeResultsProps) {
+export function SchemeResults({ profile, onEditProfile }: SchemeResultsProps) {
   const { user } = useAuth();
+  const { lang, t } = useLanguage();
   const [view, setView] = useState<View>('schemes');
   const [schemes, setSchemes] = useState<Scheme[]>([]);
   const [answer, setAnswer] = useState('');
@@ -226,7 +228,7 @@ export function SchemeResults({ lang, profile, onEditProfile }: SchemeResultsPro
           {loading && (
             <div className="flex flex-col items-center justify-center py-16 space-y-4" role="status" aria-label="Loading schemes">
               <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin" />
-              <p className="text-amber-800 text-sm">Finding schemes for you…</p>
+              <p className="text-amber-800 text-sm">{t('results.findingSchemes')}</p>
             </div>
           )}
 
@@ -250,9 +252,9 @@ export function SchemeResults({ lang, profile, onEditProfile }: SchemeResultsPro
           {!loading && !error && schemes.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
               <span className="text-4xl">🔍</span>
-              <p className="text-slate-600 font-medium">No schemes found yet</p>
+              <p className="text-slate-600 font-medium">{t('results.noSchemesFound')}</p>
               <p className="text-slate-400 text-sm max-w-xs">
-                Try updating your profile details or use the Ask a Question tab to search more specifically.
+                {t('results.noSchemesHint')}
               </p>
             </div>
           )}
@@ -261,11 +263,13 @@ export function SchemeResults({ lang, profile, onEditProfile }: SchemeResultsPro
           {!loading && schemes.length > 0 && (
             <div className="space-y-3">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                {schemes.length} scheme{schemes.length !== 1 ? 's' : ''} found
+                {t('results.schemesFound', { count: schemes.length })}
               </p>
-              {schemes.map(scheme => (
-                <SchemeCard key={scheme.id} scheme={scheme} profile={profile} />
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {schemes.map(scheme => (
+                  <SchemeCard key={scheme.id} scheme={scheme} profile={profile} />
+                ))}
+              </div>
             </div>
           )}
 
@@ -277,7 +281,7 @@ export function SchemeResults({ lang, profile, onEditProfile }: SchemeResultsPro
       {/* Voice tab */}
       {view === 'voice' && (
         <div className="flex-1 overflow-hidden flex flex-col">
-          <VoiceInterface lang={lang} />
+          <VoiceInterface />
         </div>
       )}
     </div>

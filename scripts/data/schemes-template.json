@@ -1,22 +1,78 @@
 {
   "schemes": [
     {
-      "scheme_code": "TG-EXAMPLE-001",
-      "name_en": "Example scheme — replace with curator-verified content",
+      "scheme_code": "TG-SCHEME-CODE",
+      "name_en": "Official English scheme name",
       "category": "Benefits & Social Development",
       "level": "state",
+      "nodal_ministry_or_dept": "Department or ministry name",
       "applicable_states": ["Telangana"],
-      "description_en": "Use only information verified from the official source.",
-      "benefits_en": "Describe the verified benefit.",
-      "application_process_en": "Describe the official application process.",
+      "description_en": "Curator-verified description from the official source.",
+      "benefits_en": "Curator-verified benefits, limits, and payment details.",
+      "application_process_en": "Official application steps and where to apply.",
+      "required_documents": ["Aadhaar", "Income certificate"],
+      "official_url": "https://www.example.gov.in/scheme-page",
+      "source": "official",
+      "eligibility_criteria": {
+        "age_min": 18,
+        "age_max": 60,
+        "gender": ["female"],
+        "category": ["SC", "ST", "BC", "Minority"],
+        "area": ["rural", "urban"],
+        "disability_required": false,
+        "minority_required": false,
+        "student_required": false
+      },
+      "is_active": true,
+      "last_verified_at": "2026-08-13",
+      "verified_by": "curator-name",
+      "translations": [
+        {
+          "language_code": "te",
+          "name": "Verified Telugu scheme name",
+          "description": "Verified Telugu description.",
+          "benefits": "Verified Telugu benefits.",
+          "eligibility_summary": "Short Telugu eligibility summary.",
+          "needs_review": true
+        },
+        {
+          "language_code": "hi",
+          "name": "Verified Hindi scheme name",
+          "description": "Verified Hindi description.",
+          "benefits": "Verified Hindi benefits.",
+          "eligibility_summary": "Short Hindi eligibility summary.",
+          "needs_review": true
+        }
+      ]
+    },
+    {
+      "scheme_code": "CENTRAL-SCHEME-CODE",
+      "name_en": "Official central scheme name",
+      "category": "Education",
+      "level": "central",
+      "nodal_ministry_or_dept": "Ministry name",
+      "applicable_states": ["ALL"],
+      "description_en": "Curator-verified central government scheme description.",
+      "benefits_en": "Curator-verified central scheme benefits.",
+      "application_process_en": "Official application steps and portal details.",
       "required_documents": [],
       "official_url": "https://www.myscheme.gov.in",
       "source": "myscheme",
-      "eligibility_criteria": {},
-      "last_verified_at": "2026-08-12",
-      "verified_by": "curator-id",
+      "eligibility_criteria": {
+        "student_required": true
+      },
+      "is_active": true,
+      "last_verified_at": "2026-08-13",
+      "verified_by": "curator-name",
       "translations": [
-        { "language_code": "en", "name": "Example scheme", "description": "Verified description.", "benefits": "Verified benefit.", "eligibility_summary": "Check the official source for eligibility." }
+        {
+          "language_code": "te",
+          "name": "Verified Telugu central scheme name",
+          "description": "Verified Telugu description.",
+          "benefits": "Verified Telugu benefits.",
+          "eligibility_summary": "Short Telugu eligibility summary.",
+          "needs_review": true
+        }
       ]
     }
   ]

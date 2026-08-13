@@ -35,7 +35,7 @@ Voice-first web app helping low-literacy Indian users discover government welfar
 3. Embed query (Gemini) → vector search `match_schemes` RPC
 4. Construct context from top-k schemes
 5. Generate answer (Gemini) with strict anti-hallucination prompt
-6. Log to `query_history`
+6. Log to `query_logs`
 
 ### Voice Interface (`VoiceInterface.tsx`)
 - Browser Web Speech API for STT (client-side, temporary)

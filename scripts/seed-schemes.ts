@@ -2,20 +2,16 @@ import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 
-// Simple .env.local loader
 function loadEnv() {
   const envPath = path.join(process.cwd(), '.env.local');
-  if (fs.existsSync(envPath)) {
-    const envConfig = fs.readFileSync(envPath, 'utf8');
-    envConfig.split('\n').forEach((line) => {
-      const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
-        const [key, ...values] = trimmed.split('=');
-        const val = values.join('=').trim();
-        process.env[key.trim()] = val;
-      }
-    });
-  }
+  if (!fs.existsSync(envPath)) return;
+  const envConfig = fs.readFileSync(envPath, 'utf8');
+  envConfig.split('\n').forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#') || !trimmed.includes('=')) return;
+    const [key, ...values] = trimmed.split('=');
+    process.env[key.trim()] = values.join('=').trim();
+  });
 }
 
 loadEnv();
@@ -26,41 +22,54 @@ const geminiApiKey = process.env.GEMINI_API_KEY;
 const embeddingModel = process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001';
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Error: Supabase URL or Service Role Key missing in .env.local');
+  console.error('Error: Supabase URL or Service Role Key missing in .env.local');
   process.exit(1);
 }
 
 if (!geminiApiKey) {
-  console.error('❌ Error: GEMINI_API_KEY missing in .env.local');
+  console.error('Error: GEMINI_API_KEY missing in .env.local');
   process.exit(1);
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-interface SchemeData {
-  name: string;
-  description: string;
-  eligibility_criteria: string;
-  benefits: string;
-  application_process: string;
-  source_url: string;
-  last_verified_date: string;
-  is_active: boolean;
+interface SchemeSeedInput {
+  scheme_code: string;
+  name_en: string;
+  category: string;
+  level: 'central' | 'state';
+  nodal_ministry_or_dept?: string | null;
+  applicable_states: string[];
+  description_en: string;
+  benefits_en: string;
+  application_process_en?: string | null;
+  required_documents?: string[];
+  official_url: string;
+  source: 'myscheme' | 'data.gov.in' | 'india.gov.in' | 'official';
+  eligibility_criteria?: Record<string, unknown>;
+  is_active?: boolean;
+  last_verified_at: string;
+  verified_by: string;
+  translations: Array<{
+    language_code: 'en' | 'hi' | 'te';
+    name: string;
+    description: string;
+    benefits: string;
+    eligibility_summary: string;
+    needs_review?: boolean;
+  }>;
 }
 
 async function fetchEmbedding(text: string): Promise<number[]> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${embeddingModel}:embedContent?key=${geminiApiKey}`;
-  
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: `models/${embeddingModel}`,
-      content: {
-        parts: [{ text }]
-      },
-      outputDimensionality: 768
-    })
+      content: { parts: [{ text }] },
+      outputDimensionality: 768,
+    }),
   });
 
   if (!response.ok) {
@@ -69,127 +78,48 @@ async function fetchEmbedding(text: string): Promise<number[]> {
   }
 
   const data = await response.json();
-  if (!data.embedding?.values) {
-    throw new Error(`No embedding values returned in response: ${JSON.stringify(data)}`);
-  }
-
+  if (!data.embedding?.values) throw new Error(`No embedding values returned: ${JSON.stringify(data)}`);
   return data.embedding.values;
 }
 
+function embeddingText(scheme: SchemeSeedInput) {
+  return [
+    scheme.name_en,
+    scheme.description_en,
+    scheme.benefits_en,
+    scheme.application_process_en,
+    JSON.stringify(scheme.eligibility_criteria ?? {}),
+  ].filter(Boolean).join('\n');
+}
+
 async function seedSchemes() {
-  console.log('🚀 Starting scheme database seeding process...');
+  console.log('Starting scheme database seeding process...');
 
   const dataFilePath = path.join(process.cwd(), 'scripts', 'data', 'schemes-data.json');
   if (!fs.existsSync(dataFilePath)) {
-    console.error(`❌ Data file not found at ${dataFilePath}`);
+    console.error(`Data file not found at ${dataFilePath}`);
     process.exit(1);
   }
 
   const rawData = fs.readFileSync(dataFilePath, 'utf8');
-  const schemes: SchemeData[] = JSON.parse(rawData);
+  const payload = JSON.parse(rawData);
+  const schemes: SchemeSeedInput[] = Array.isArray(payload) ? payload : payload.schemes;
+  if (!Array.isArray(schemes) || schemes.length === 0) throw new Error('Expected a non-empty schemes array.');
 
-  console.log(`📦 Found ${schemes.length} schemes to seed.`);
-
-  let insertedCount = 0;
-  let errorCount = 0;
-
+  const rows = [];
   for (let i = 0; i < schemes.length; i++) {
     const scheme = schemes[i];
-    console.log(`\n[${i + 1}/${schemes.length}] Processing: "${scheme.name}"`);
-
-    const textToEmbed = `Scheme: ${scheme.name}
-Description: ${scheme.description}
-Eligibility: ${scheme.eligibility_criteria}
-Benefits: ${scheme.benefits}
-Application Process: ${scheme.application_process}`;
-
-    try {
-      console.log(`  Generating 768-dim embedding via ${embeddingModel}...`);
-      const embedding = await fetchEmbedding(textToEmbed);
-      console.log(`  ✓ Embedding generated (${embedding.length} dimensions)`);
-
-      const { data: existing } = await supabase
-        .from('schemes')
-        .select('id')
-        .eq('name', scheme.name)
-        .maybeSingle();
-
-      if (existing) {
-        console.log(`  Updating existing scheme record (ID: ${existing.id})...`);
-        const { error: updateError } = await supabase
-          .from('schemes')
-          .update({
-            description: scheme.description,
-            eligibility_criteria: scheme.eligibility_criteria,
-            benefits: scheme.benefits,
-            application_process: scheme.application_process,
-            source_url: scheme.source_url,
-            last_verified_date: scheme.last_verified_date,
-            is_active: scheme.is_active,
-            embedding: embedding
-          })
-          .eq('id', existing.id);
-
-        if (updateError) {
-          console.error(`  ❌ Update error:`, updateError.message);
-          errorCount++;
-        } else {
-          console.log(`  ✅ Successfully updated "${scheme.name}"`);
-          insertedCount++;
-        }
-      } else {
-        console.log(`  Inserting new scheme record...`);
-        const { error: insertError } = await supabase
-          .from('schemes')
-          .insert({
-            name: scheme.name,
-            description: scheme.description,
-            eligibility_criteria: scheme.eligibility_criteria,
-            benefits: scheme.benefits,
-            application_process: scheme.application_process,
-            source_url: scheme.source_url,
-            last_verified_date: scheme.last_verified_date,
-            is_active: scheme.is_active,
-            embedding: embedding
-          });
-
-        if (insertError) {
-          console.error(`  ❌ Insert error:`, insertError.message);
-          errorCount++;
-        } else {
-          console.log(`  ✅ Successfully inserted "${scheme.name}"`);
-          insertedCount++;
-        }
-      }
-    } catch (err) {
-      console.error(`  ❌ Error processing scheme:`, err instanceof Error ? err.message : err);
-      errorCount++;
-    }
+    console.log(`[${i + 1}/${schemes.length}] Embedding ${scheme.scheme_code}: ${scheme.name_en}`);
+    rows.push({ ...scheme, content_embedding: await fetchEmbedding(embeddingText(scheme)) });
   }
 
-  console.log('\n========================================');
-  console.log(`🎉 Seeding Complete!`);
-  console.log(`   Successful: ${insertedCount}`);
-  console.log(`   Failed: ${errorCount}`);
+  const { error } = await supabase.rpc('import_schemes_batch', { p_rows: rows });
+  if (error) throw error;
 
-  // Query database to verify final state
-  const { data: verifyData, count, error: verifyError } = await supabase
-    .from('schemes')
-    .select('id, name, embedding', { count: 'exact' })
-    .eq('is_active', true);
-
-  if (verifyError) {
-    console.error('❌ Failed to verify database contents:', verifyError.message);
-  } else {
-    console.log(`📊 Verification Result:`);
-    console.log(`   Total active schemes in DB: ${count ?? verifyData?.length}`);
-    const validEmbeddings = verifyData?.filter((s) => s.embedding !== null).length || 0;
-    console.log(`   Schemes with valid embeddings: ${validEmbeddings}`);
-  }
-  console.log('========================================\n');
+  console.log(`Seed complete. Imported or updated ${rows.length} scheme(s).`);
 }
 
 seedSchemes().catch((err) => {
-  console.error('Unhandled error during seeding:', err);
+  console.error('Unhandled error during seeding:', err instanceof Error ? err.message : err);
   process.exit(1);
 });
