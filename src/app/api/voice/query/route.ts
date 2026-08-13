@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getEmbedding, generateText } from '@/lib/gemini';
+import { getEmbedding, generateJson } from '@/lib/gemini';
 import { getServiceSupabase } from '@/lib/supabase';
 import { requireUser } from '@/lib/server-auth';
 import { languageSchema } from '@/lib/scheme-schemas';
@@ -28,9 +28,26 @@ export async function POST(request: Request) {
     const { data: schemes, error: schemeError } = await db.from('schemes').select('id, name_en, description_en, benefits_en, application_process_en, required_documents, official_url, eligibility_criteria, scheme_translations(language_code,name,description,benefits,eligibility_summary)').in('id', ids);
     if (schemeError) throw schemeError;
     const context = (schemes ?? []).map((scheme) => `<scheme id="${scheme.id}">Name: ${scheme.name_en}\nDescription: ${scheme.description_en}\nBenefits: ${scheme.benefits_en}\nApplication: ${scheme.application_process_en}\nDocuments: ${(scheme.required_documents ?? []).join(', ')}\nOfficial URL: ${scheme.official_url}\nEligibility: ${JSON.stringify(scheme.eligibility_criteria)}</scheme>`).join('\n');
-    const answer = await generateText(`<context>${context}</context>\n<query>${parsed.data.text}</query>\nRespond in ${parsed.data.lang}.`, SYSTEM_PROMPT);
-    await db.from('query_logs').insert({ user_id: user.id, query_text_raw: parsed.data.text, query_language: parsed.data.lang, retrieved_scheme_ids: ids, top_similarity_score: topScore, confidence_flag: 'confident', response_text: answer || FALLBACK });
-    return NextResponse.json({ answer: answer || FALLBACK, schemes, confidence: 'confident' });
+    interface StructuredAnswer {
+  description: string;
+  benefits: string;
+  how_to_apply: string;
+  documents: string;
+  official_url: string;
+}
+
+const answer = await generateJson<StructuredAnswer>(`<context>${context}</context>\n<query>${parsed.data.text}</query>\nRespond with a JSON object containing keys: description, benefits, how_to_apply, documents, official_url. Respond in ${parsed.data.lang}.`, SYSTEM_PROMPT);
+const formattedAnswer = answer ? `📋 Description: ${answer.description}\n💰 Benefits: ${answer.benefits}\n📝 How to Apply: ${answer.how_to_apply}\n📄 Documents: ${answer.documents}\n🔗 Official URL: ${answer.official_url}` : FALLBACK;
+    await db.from('query_logs').insert({
+        user_id: user.id,
+        query_text_raw: parsed.data.text,
+        query_language: parsed.data.lang,
+        retrieved_scheme_ids: ids,
+        top_similarity_score: topScore,
+        confidence_flag: 'confident',
+        response_text: formattedAnswer
+      });
+      return NextResponse.json({ answer: formattedAnswer, schemes, confidence: 'confident' });
   } catch (error) {
     console.error('Voice query failed:', error);
     return NextResponse.json({ error: 'Unable to process your question' }, { status: 500 });

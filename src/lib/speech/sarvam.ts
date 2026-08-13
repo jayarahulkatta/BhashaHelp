@@ -29,28 +29,6 @@ function resolveLang(lang: SpeechLanguage): string {
   return SARVAM_LANG_MAP[lang] ?? lang;
 }
 
-async function sarvamPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
-  const apiKey = requireApiKey();
-  const res = await fetch(`${SARVAM_API_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-subscription-key': apiKey,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => 'unknown');
-    throw new SpeechServiceError(
-      `Sarvam API error (${res.status}): ${errorText}`,
-      'API_ERROR',
-    );
-  }
-
-  return res.json() as Promise<T>;
-}
-
 export class SarvamSpeechProvider implements SpeechProvider {
   readonly name = 'sarvam';
 
@@ -68,7 +46,7 @@ export class SarvamSpeechProvider implements SpeechProvider {
     // Sarvam STT requires multipart/form-data with field named "file"
     const formData = new FormData();
     formData.append('file', audioBlob, 'recording.webm');
-    formData.append('model', 'saarika:v2.5');
+    formData.append('model', 'saaras:v3');
 
     if (languageHint) {
       formData.append('language_code', resolveLang(languageHint));
@@ -105,18 +83,30 @@ export class SarvamSpeechProvider implements SpeechProvider {
       return text;
     }
 
-    const data = await sarvamPost<{ translated_text: string }>(
-      '/translate',
-      {
-        input: { text },
-        config: {
-          source_language: resolveLang(sourceLang),
-          target_language: resolveLang(targetLang),
-          model: 'mayura:v2',
-        },
+    const apiKey = requireApiKey();
+    const res = await fetch(`${SARVAM_API_URL}/translate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-subscription-key': apiKey,
       },
-    );
+      body: JSON.stringify({
+        input: text,
+        source_language_code: resolveLang(sourceLang),
+        target_language_code: resolveLang(targetLang),
+        model: 'mayura:v2',
+      }),
+    });
 
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => 'unknown');
+      throw new SpeechServiceError(
+        `Sarvam Translate error (${res.status}): ${errorText}`,
+        'API_ERROR',
+      );
+    }
+
+    const data = await res.json() as { translated_text: string };
     return data.translated_text;
   }
 
@@ -125,21 +115,39 @@ export class SarvamSpeechProvider implements SpeechProvider {
       throw new SpeechServiceError('Text is empty', 'EMPTY_RESPONSE');
     }
 
-    const data = await sarvamPost<{ audio_base64: string }>(
-      '/text-to-speech',
-      {
-        input: { text },
-        config: {
-          language: resolveLang(language),
-          model: 'bulbul:v1',
-          voice: 'meera',
-        },
+    const apiKey = requireApiKey();
+    const res = await fetch(`${SARVAM_API_URL}/text-to-speech`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-subscription-key': apiKey,
       },
-    );
+      body: JSON.stringify({
+        text: text,
+        language_code: resolveLang(language),
+        model: 'bulbul:v3',
+        speaker: 'meera',
+      }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => 'unknown');
+      throw new SpeechServiceError(
+        `Sarvam TTS error (${res.status}): ${errorText}`,
+        'API_ERROR',
+      );
+    }
+
+    const data = await res.json() as { audios: string[]; request_id: string };
+
+    if (!data.audios || data.audios.length === 0) {
+      throw new SpeechServiceError('No audio returned from TTS', 'EMPTY_RESPONSE');
+    }
 
     return {
-      audioBase64: data.audio_base64,
+      audioBase64: data.audios[0],
       mimeType: 'audio/wav',
     };
   }
 }
+

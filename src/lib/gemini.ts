@@ -80,3 +80,14 @@ export async function generateText(prompt: string, systemInstruction?: string): 
   const data = await response.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
+
+export async function generateJson<T>(prompt: string, systemInstruction?: string): Promise<T> {
+  const text = await generateText(prompt, systemInstruction);
+  try {
+    const jsonString = text.replace(/```json\n?|\n?```/g, '').trim();
+    return JSON.parse(jsonString) as T;
+  } catch (error) {
+    console.error('Failed to parse Gemini JSON response:', text);
+    throw new Error('Failed to parse JSON from model');
+  }
+}
