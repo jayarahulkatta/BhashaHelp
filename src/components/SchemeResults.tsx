@@ -134,36 +134,31 @@ export function SchemeResults({ profile, onEditProfile }: SchemeResultsProps) {
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const hasFetchedRef = useRef(false);
-
-  // Fetch personalized schemes on mount (once)
+  // Fetch personalized schemes on mount
   React.useEffect(() => {
-    if (hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
-
-    const buildQuery = () => {
-      const parts: string[] = ['schemes I may be eligible for'];
-      if (profile.is_student) parts.push('student scholarships');
-      if (profile.has_disability) parts.push('disability welfare');
-      if (profile.is_minority) parts.push('minority welfare');
-      if (profile.category && profile.category !== 'General') {
-        parts.push(`${profile.category} community welfare`);
-      }
-      if (profile.state) parts.push(`${profile.state} state schemes`);
-      return parts.join(', ');
-    };
-
-    api.query.search(buildQuery(), lang, user?.id)
+    let mounted = true;
+    
+    setLoading(true);
+    setError('');
+    
+    api.schemes.match(lang)
       .then(res => {
+        if (!mounted) return;
         setSchemes(res.schemes || []);
-        setAnswer(res.answer || '');
+        // The match_schemes RPC doesn't return an AI answer summary
+        setAnswer('');
         setLoading(false);
       })
       .catch(err => {
+        if (!mounted) return;
         setError(err instanceof Error ? err.message : 'Failed to load schemes');
         setLoading(false);
       });
-  }, [lang, profile, user?.id]);
+      
+    return () => {
+      mounted = false;
+    };
+  }, [lang, user?.id]);
 
   const profileSummaryParts: string[] = [];
   if (profile.gender) profileSummaryParts.push(profile.gender);

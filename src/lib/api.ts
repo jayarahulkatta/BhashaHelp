@@ -62,6 +62,24 @@ export const api = {
     }
   },
 
+  schemes: {
+    match: async (lang: Language): Promise<{ schemes: Scheme[] }> => {
+      if (!supabase) throw new Error('Supabase client is unavailable');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Please sign in to view schemes');
+      const res = await fetch('/api/schemes/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ language: lang })
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to match schemes');
+      }
+      return res.json();
+    }
+  },
+
   query: {
     search: async (text: string, lang: Language, userId?: string): Promise<QueryResponse> => {
       // Kept for source compatibility with older callers; identity now comes from the session token.
