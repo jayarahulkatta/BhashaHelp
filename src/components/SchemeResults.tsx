@@ -14,8 +14,8 @@ interface SchemeResultsProps {
 type View = 'schemes' | 'voice';
 
 // Eligibility badge: rough heuristic from profile + scheme eligibility text
-function guessEligibility(scheme: Scheme, profile: UserProfile): 'likely' | 'maybe' | null {
-  const criteria = (scheme.eligibility_criteria || '').toLowerCase();
+function guessEligibility(scheme: any, profile: UserProfile): 'likely' | 'maybe' | null {
+  const criteria = (scheme.eligibility_summary || JSON.stringify(scheme.eligibility_criteria || {})).toLowerCase();
   const name = (scheme.name || '').toLowerCase();
 
   // If profile has no data, can't guess
@@ -69,7 +69,7 @@ function EligibilityBadge({ level }: { level: 'likely' | 'maybe' | null }) {
   );
 }
 
-function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile }) {
+function SchemeCard({ scheme, profile }: { scheme: any; profile: UserProfile }) {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const eligibility = guessEligibility(scheme, profile);
@@ -89,7 +89,7 @@ function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile 
           <div className="mt-4 space-y-3 text-sm">
             <div>
               <p className="font-medium text-amber-900 mb-1">{t('results.whoCanApply')}</p>
-              <p className="text-slate-600 leading-relaxed">{scheme.eligibility_criteria}</p>
+              <p className="text-slate-600 leading-relaxed">{scheme.eligibility_summary || JSON.stringify(scheme.eligibility_criteria || {})}</p>
             </div>
             <div>
               <p className="font-medium text-amber-900 mb-1">{t('results.benefits')}</p>
@@ -97,7 +97,7 @@ function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile 
             </div>
             <div>
               <p className="font-medium text-amber-900 mb-1">{t('results.howToApply')}</p>
-              <p className="text-slate-600 leading-relaxed">{scheme.application_process}</p>
+              <p className="text-slate-600 leading-relaxed">{scheme.application_process || scheme.application_process_en}</p>
             </div>
           </div>
         )}
