@@ -43,7 +43,7 @@ export function VoiceInterface() {
     setTextInput('');
 
     try {
-      const res = await api.query.ask(query, lang);
+      const res = await api.query.search(query, lang);
       setMessages(prev => [
         ...prev.slice(0, -1),
         { 

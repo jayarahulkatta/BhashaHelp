@@ -61,15 +61,23 @@ export async function POST(request: Request) {
     // Generate a high-entropy random password just for this login session
     const oneTimePassword = crypto.randomBytes(32).toString('base64');
 
-    // Use getUserByEmail (single call, no pagination) — much faster and reliable.
-    // Falls back to createUser if the user doesn't exist yet.
     let userId: string;
 
     try {
-      const { data: existingUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(authEmail);
-      
-      if (getUserError && getUserError.message !== 'User not found') {
-        throw getUserError;
+      // Find the user by paginating through listUsers (since getUserByEmail doesn't exist on the JS client)
+      let existingUser = null;
+      let page = 1;
+      while (true) {
+        const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+        if (listError) throw listError;
+        if (!listData.users || listData.users.length === 0) break;
+        
+        const found = listData.users.find((u: any) => u.email === authEmail);
+        if (found) {
+          existingUser = { user: found };
+          break;
+        }
+        page++;
       }
 
       if (existingUser?.user) {
