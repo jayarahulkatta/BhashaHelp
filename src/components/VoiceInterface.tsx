@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useVoice } from '@/hooks/useVoice';
 import { api, Scheme } from '@/lib/api';
 import { useLanguage } from './LanguageProvider';
+import { VoiceInput } from '@/components/ui/voice-input';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -155,29 +156,17 @@ export function VoiceInterface() {
             </button>
           </form>
           
-          <button
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-            className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center transition-all ${
-              isRecording 
-                ? 'bg-red-500 text-white shadow-lg shadow-red-500/40 animate-pulse scale-95' 
-                : 'bg-gradient-to-br from-[#FF9933] to-[#E68A2E] text-white shadow-md hover:shadow-lg hover:shadow-orange-500/25 active:scale-95'
-            }`}
-            aria-label={isRecording ? "Stop recording" : "Start recording"}
-          >
-            {isRecording ? (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" /><path d="M0 0h24v24H0z" fill="none"/></svg>
-            ) : (
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-            )}
-          </button>
+          <VoiceInput 
+            isRecording={isRecording}
+            onStart={startRecording}
+            onStop={stopRecording}
+            className="w-auto h-auto"
+          />
         </div>
         
         {isRecording && (
-          <div className="text-center mt-2 text-xs font-bold text-red-500 animate-pulse uppercase tracking-wider">
-            Listening... Release to send
+          <div className="text-center mt-3 text-xs font-bold text-red-500 animate-pulse uppercase tracking-wider">
+            Listening... Tap to stop
           </div>
         )}
       </div>

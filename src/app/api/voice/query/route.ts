@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const db = getServiceSupabase();
   try {
     const embedding = await getEmbedding(parsed.data.text);
-    const { data: matches, error } = await db.rpc('match_eligible_schemes_semantic', { p_user_id: user.id, p_query_embedding: embedding, p_threshold: 0.75, p_limit: 5 });
+    const { data: matches, error } = await db.rpc('match_eligible_schemes_semantic', { p_user_id: user.id, p_query_embedding: embedding, p_threshold: 0.55, p_limit: 5 });
     if (error) throw error;
     const topScore = matches?.[0]?.similarity ?? null;
     if (!matches?.length) {
