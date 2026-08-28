@@ -16,28 +16,6 @@ function phoneToAuthEmail(phone: string) {
   return `${digits}@phone.bhashahelp.local`;
 }
 
-async function findUserByAuthEmail(supabaseAdmin: ReturnType<typeof getServiceSupabase>, email: string) {
-  const usersPerPage = 1000;
-
-  for (let page = 1; page <= 10; page += 1) {
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
-      page,
-      perPage: usersPerPage,
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    const userRecord = data.users.find((user) => user.email === email);
-    if (userRecord || data.users.length < usersPerPage) {
-      return userRecord ?? null;
-    }
-  }
-
-  throw new Error('Auth user lookup exceeded pagination limit');
-}
-
 export async function POST(request: Request) {
   try {
     const config = getTwoFactorConfig();
@@ -67,63 +45,68 @@ export async function POST(request: Request) {
     }
 
     // Call 2Factor.in Verification API
-    // 2Factor URL format: https://2factor.in/API/V1/{api_key}/SMS/VERIFY/{session_id}/{otp_entered_by_user}
     const verifyUrl = `https://2factor.in/API/V1/${config.apiKey}/SMS/VERIFY/${encodeURIComponent(sessionId)}/${encodeURIComponent(otp)}`;
     
     const response = await fetch(verifyUrl, { method: 'GET' });
     const data = await response.json();
 
     if (data.Status !== 'Success') {
-      return NextResponse.json({ error: 'Invalid OTP' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid OTP. Please try again.' }, { status: 400 });
     }
 
     // OTP is valid. Now handle Supabase authentication.
     const supabaseAdmin = getServiceSupabase();
     const authEmail = phoneToAuthEmail(normalizedPhone);
     
-    let userRecord;
-    try {
-      userRecord = await findUserByAuthEmail(supabaseAdmin, authEmail);
-    } catch (userLookupError) {
-      console.error('Error looking up user:', userLookupError);
-      return NextResponse.json({ error: 'Internal server error during authentication' }, { status: 500 });
-    }
-
     // Generate a high-entropy random password just for this login session
     const oneTimePassword = crypto.randomBytes(32).toString('base64');
 
-    if (userRecord) {
-      // User exists, update their password so the client can log in
-      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userRecord.id, {
-        password: oneTimePassword,
-        user_metadata: {
-          ...userRecord.user_metadata,
-          phone: normalizedPhone,
-        }
-      });
+    // Use getUserByEmail (single call, no pagination) — much faster and reliable.
+    // Falls back to createUser if the user doesn't exist yet.
+    let userId: string;
 
-      if (updateError) throw updateError;
-    } else {
-      // Create new user
-      const { error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: authEmail,
-        password: oneTimePassword,
-        email_confirm: true,
-        user_metadata: {
-          phone: normalizedPhone,
-        },
-      });
+    try {
+      const { data: existingUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(authEmail);
+      
+      if (getUserError && getUserError.message !== 'User not found') {
+        throw getUserError;
+      }
 
-      if (createError) throw createError;
+      if (existingUser?.user) {
+        // User exists — update their password for this session
+        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(existingUser.user.id, {
+          password: oneTimePassword,
+          user_metadata: {
+            ...existingUser.user.user_metadata,
+            phone: normalizedPhone,
+          }
+        });
+        if (updateError) throw updateError;
+        userId = existingUser.user.id;
+      } else {
+        // New user — create them
+        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          email: authEmail,
+          password: oneTimePassword,
+          email_confirm: true,
+          user_metadata: { phone: normalizedPhone },
+        });
+        if (createError) throw createError;
+        userId = newUser.user.id;
+      }
+    } catch (userError) {
+      console.error('Error managing user account:', userError);
+      return NextResponse.json({ error: 'Internal server error during authentication' }, { status: 500 });
     }
 
-    // Return the one-time password to the client.
-    // The client will immediately use this to call `supabase.auth.signInWithPassword()`
-    // This is secure because the payload is encrypted in transit via HTTPS and immediately discarded.
+    // Return the one-time credentials to the client.
+    // The client immediately uses this to call `supabase.auth.signInWithPassword()`.
+    // This is secure: payload is encrypted in transit via HTTPS and discarded immediately.
     return NextResponse.json({ 
       email: authEmail,
       phone: normalizedPhone,
-      password: oneTimePassword 
+      password: oneTimePassword,
+      userId
     });
 
   } catch (error) {
