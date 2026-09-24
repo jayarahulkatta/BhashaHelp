@@ -19,13 +19,14 @@ export function VoiceInput({
 }: React.ComponentProps<"div"> & VoiceInputProps) {
   const [_time, _setTime] = React.useState<number>(0)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const randomValues = React.useMemo(() => {
+    /* eslint-disable react-hooks/purity */
     return Array.from({ length: 8 }, () => ({
       h1: 8 + Math.random() * 12,
       h2: 6 + Math.random() * 8,
       duration: 0.6 + Math.random() * 0.4
     }))
+    /* eslint-enable react-hooks/purity */
   }, [])
 
   React.useEffect(() => {

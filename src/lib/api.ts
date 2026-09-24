@@ -6,7 +6,7 @@ export interface Scheme {
   name: string;
   name_en?: string;
   description: string;
-  eligibility_criteria: any;
+  eligibility_criteria: unknown;
   eligibility_summary?: string;
   benefits: string;
   application_process: string;
