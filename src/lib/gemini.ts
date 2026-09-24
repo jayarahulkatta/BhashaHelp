@@ -65,20 +65,35 @@ export async function generateText(prompt: string, systemInstruction?: string): 
     };
   }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+  const MAX_RETRIES = 3;
+  const requestBody = JSON.stringify(body);
 
-  if (!response.ok) {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: requestBody
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+
+    // Retry on transient errors (503 overload, 429 rate limit)
+    if ((response.status === 503 || response.status === 429) && attempt < MAX_RETRIES) {
+      const delayMs = Math.min(1000 * Math.pow(2, attempt), 8000);
+      console.warn(`Gemini API returned ${response.status}, retrying in ${delayMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      continue;
+    }
+
     const errorData = await response.text();
     console.error('Gemini Generation Error:', errorData);
-    throw new Error('Failed to generate text');
+    throw new Error(`Failed to generate text (status ${response.status})`);
   }
 
-  const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  throw new Error('Failed to generate text after retries');
 }
 
 export async function generateJson<T>(prompt: string, systemInstruction?: string): Promise<T> {

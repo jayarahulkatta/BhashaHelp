@@ -57,7 +57,7 @@ export function getServiceSupabaseConfig() {
 export function getGeminiConfig() {
   return {
     apiKey: requireEnv('GEMINI_API_KEY'),
-    generationModel: process.env.GEMINI_GENERATION_MODEL || 'gemini-3.5-flash',
+    generationModel: 'gemini-flash-lite-latest',
     embeddingModel: process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001',
   };
 }
