@@ -4,12 +4,17 @@ import { supabase } from './supabase';
 export interface Scheme {
   id: string;
   name: string;
+  name_en?: string;
   description: string;
-  eligibility_criteria: string;
+  eligibility_criteria: any;
+  eligibility_summary?: string;
   benefits: string;
   application_process: string;
+  application_process_en?: string;
+  category?: string;
   similarity: number;
   source_url?: string;
+  official_url?: string;
 }
 
 export interface QueryResponse {

@@ -68,8 +68,8 @@ function EligibilityBadge({ level }: { level: 'likely' | 'maybe' | null }) {
   );
 }
 
-function getCategoryIcon(category: string) {
-  const cat = category.toLowerCase();
+function getCategoryIcon(category?: string) {
+  const cat = (category || '').toLowerCase();
   if (cat.includes('health') || cat.includes('aarogya')) return '🏥';
   if (cat.includes('education') || cat.includes('scholarship')) return '🎓';
   if (cat.includes('agri') || cat.includes('rythu') || cat.includes('kisan')) return '🌾';
