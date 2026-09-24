@@ -46,10 +46,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const t = (key: string, vars?: Record<string, string | number>) => {
     // Basic dot notation getter
     const keys = key.split('.');
-    let result: any = dict;
+    let result: unknown = dict;
     for (const k of keys) {
       if (result && typeof result === 'object') {
-        result = result[k as keyof typeof result];
+        result = (result as Record<string, unknown>)[k];
       } else {
         return key; // fallback to key
       }

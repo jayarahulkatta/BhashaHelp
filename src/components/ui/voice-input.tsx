@@ -19,6 +19,15 @@ export function VoiceInput({
 }: React.ComponentProps<"div"> & VoiceInputProps) {
   const [_time, _setTime] = React.useState<number>(0)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const randomValues = React.useMemo(() => {
+    return Array.from({ length: 8 }, () => ({
+      h1: 8 + Math.random() * 12,
+      h2: 6 + Math.random() * 8,
+      duration: 0.6 + Math.random() * 0.4
+    }))
+  }, [])
+
   React.useEffect(() => {
     let intervalId: NodeJS.Timeout
 
@@ -27,7 +36,7 @@ export function VoiceInput({
         _setTime((t) => t + 1)
       }, 1000)
     } else {
-      _setTime(0)
+      queueMicrotask(() => _setTime(0))
     }
 
     return () => clearInterval(intervalId)
@@ -96,11 +105,11 @@ export function VoiceInput({
                     initial={{ height: 4 }}
                     animate={{
                       height: isRecording
-                        ? [4, 8 + Math.random() * 12, 6 + Math.random() * 8, 4]
+                        ? [4, randomValues[i].h1, randomValues[i].h2, 4]
                         : 4,
                     }}
                     transition={{
-                      duration: 0.6 + (Math.random() * 0.4),
+                      duration: randomValues[i].duration,
                       repeat: Number.POSITIVE_INFINITY,
                       delay: i * 0.05,
                       ease: "easeInOut",

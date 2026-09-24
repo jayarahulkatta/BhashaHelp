@@ -30,9 +30,10 @@ export async function POST(request: Request) {
 
     for (const scheme of schemes) {
       try {
-        const translations = scheme.scheme_translations as any;
+        type Translation = { language_code: string; eligibility_summary?: string };
+        const translations = scheme.scheme_translations as unknown as Translation | Translation[];
         const enTranslation = Array.isArray(translations) 
-            ? translations.find((t: any) => t.language_code === 'en')
+            ? translations.find((t) => t.language_code === 'en')
             : (translations?.language_code === 'en' ? translations : null);
         
         const eligibilitySummary = enTranslation?.eligibility_summary || '';

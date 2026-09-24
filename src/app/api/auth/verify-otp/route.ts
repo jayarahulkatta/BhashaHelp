@@ -72,7 +72,7 @@ export async function POST(request: Request) {
         if (listError) throw listError;
         if (!listData.users || listData.users.length === 0) break;
         
-        const found = listData.users.find((u: any) => u.email === authEmail);
+        const found = listData.users.find((u: { email?: string }) => u.email === authEmail);
         if (found) {
           existingUser = { user: found };
           break;

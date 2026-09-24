@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { api, Scheme, UserProfile } from '@/lib/api';
 import { useAuth } from './AuthProvider';
 import { VoiceInterface } from './VoiceInterface';
@@ -13,9 +13,10 @@ interface SchemeResultsProps {
 
 type View = 'schemes' | 'voice';
 
-function guessEligibility(scheme: any, profile: UserProfile): 'likely' | 'maybe' | null {
-  const criteria = (scheme.eligibility_summary || JSON.stringify(scheme.eligibility_criteria || {})).toLowerCase();
-  const name = (scheme.name || '').toLowerCase();
+function guessEligibility(scheme: unknown, profile: UserProfile): 'likely' | 'maybe' | null {
+  const s = scheme as Record<string, unknown>;
+  const criteria = (s.eligibility_summary || JSON.stringify(s.eligibility_criteria || {})).toString().toLowerCase();
+  const name = (s.name || '').toString().toLowerCase();
 
   if (!profile.gender && !profile.state && !profile.category) return null;
 
@@ -79,7 +80,7 @@ function getCategoryIcon(category: string) {
   return '🏛️';
 }
 
-function SchemeCard({ scheme, profile }: { scheme: any; profile: UserProfile }) {
+function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile }) {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const eligibility = guessEligibility(scheme, profile);
@@ -170,8 +171,10 @@ export function SchemeResults({ profile, onEditProfile }: SchemeResultsProps) {
   React.useEffect(() => {
     let mounted = true;
     
-    setLoading(true);
-    setError('');
+    queueMicrotask(() => {
+      setLoading(true);
+      setError('');
+    });
     
     api.schemes.match(lang)
       .then(res => {

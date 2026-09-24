@@ -5,13 +5,11 @@ import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/components/LanguageProvider';
 
-interface AuthScreenProps {}
-
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-export function AuthScreen({}: AuthScreenProps) {
+export function AuthScreen() {
   const { t } = useLanguage();
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');

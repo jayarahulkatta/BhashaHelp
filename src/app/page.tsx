@@ -13,7 +13,7 @@ type AppView = 'loading' | 'auth' | 'wizard' | 'results';
 
 export default function Home() {
   const { session, user, isLoading } = useAuth();
-  const { lang, setLang, t } = useLanguage();
+  const { lang, setLang } = useLanguage();
   const [view, setView] = useState<AppView>('loading');
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
@@ -21,12 +21,12 @@ export default function Home() {
     if (isLoading) return;
 
     if (!session || !user) {
-      setView('auth');
+      queueMicrotask(() => setView('auth'));
       return;
     }
 
     if (!supabase) {
-      setView('wizard');
+      queueMicrotask(() => setView('wizard'));
       return;
     }
 

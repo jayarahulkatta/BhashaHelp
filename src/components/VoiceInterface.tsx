@@ -62,14 +62,7 @@ export function VoiceInterface() {
   };
   useEffect(() => scrollToBottom(), [messages]);
 
-  // Handle voice transcript updates
-  useEffect(() => {
-    if (transcript && !isRecording) {
-      handleQuery(transcript);
-    }
-  }, [transcript, isRecording]);
-
-  const handleQuery = async (query: string) => {
+  const handleQuery = React.useCallback(async (query: string) => {
     if (!query.trim()) return;
 
     const userMessage: ChatMessage = { role: 'user', text: query };
@@ -95,7 +88,14 @@ export function VoiceInterface() {
         { role: 'assistant', text: `❌ ${errorMsg}` }
       ]);
     }
-  };
+  }, [lang, t]);
+
+  // Handle voice transcript updates
+  useEffect(() => {
+    if (transcript && !isRecording) {
+      queueMicrotask(() => handleQuery(transcript));
+    }
+  }, [transcript, isRecording, handleQuery]);
 
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,8 +118,8 @@ export function VoiceInterface() {
               Tap the microphone and ask about any government scheme in English, Hindi, or Telugu.
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-4 max-w-md">
-              <span className="text-xs font-medium bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full shadow-sm">"What schemes are for farmers?"</span>
-              <span className="text-xs font-medium bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full shadow-sm">"How to apply for Dalit Bandhu?"</span>
+              <span className="text-xs font-medium bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full shadow-sm">&quot;What schemes are for farmers?&quot;</span>
+              <span className="text-xs font-medium bg-white border border-slate-200 text-slate-500 px-3 py-1.5 rounded-full shadow-sm">&quot;How to apply for Dalit Bandhu?&quot;</span>
             </div>
           </div>
         ) : (

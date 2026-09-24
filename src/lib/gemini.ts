@@ -86,7 +86,7 @@ export async function generateJson<T>(prompt: string, systemInstruction?: string
   try {
     const jsonString = text.replace(/```json\n?|\n?```/g, '').trim();
     return JSON.parse(jsonString) as T;
-  } catch (error) {
+  } catch {
     console.error('Failed to parse Gemini JSON response:', text);
     throw new Error('Failed to parse JSON from model');
   }

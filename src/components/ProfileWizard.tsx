@@ -275,7 +275,7 @@ export function ProfileWizard({ onComplete, isEditing = false, profile }: Profil
             </div>
             <h3 className="text-2xl font-bold text-slate-800">{t('wizard.step4Desc')}</h3>
             <p className="text-slate-500 max-w-xs font-medium">
-              We'll match you with the best government schemes based on your profile.
+              We&apos;ll match you with the best government schemes based on your profile.
             </p>
           </div>
         )}

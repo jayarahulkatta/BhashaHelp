@@ -126,7 +126,7 @@ export class SarvamSpeechProvider implements SpeechProvider {
         text: text,
         language_code: resolveLang(language),
         model: 'bulbul:v3',
-        speaker: 'meera',
+        speaker: 'rahul',
       }),
     });
 
