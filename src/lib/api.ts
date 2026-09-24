@@ -29,6 +29,11 @@ export interface UserProfile {
   disability_percentage?: number | null;
   is_minority?: boolean;
   is_student?: boolean;
+  occupation?: string | null;
+  annual_income?: string | null;
+  is_farmer?: boolean;
+  marital_status?: string | null;
+  owns_home?: boolean;
 }
 
 

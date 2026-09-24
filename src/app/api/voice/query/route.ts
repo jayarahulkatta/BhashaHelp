@@ -15,10 +15,13 @@ export async function POST(request: Request) {
   const parsed = inputSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   const db = getServiceSupabase();
+  let stage = 'embedding';
   try {
     const embedding = await getEmbedding(parsed.data.text);
+    stage = 'matching schemes';
     const { data: matches, error } = await db.rpc('match_eligible_schemes_semantic', { p_user_id: user.id, p_query_embedding: embedding, p_threshold: 0.55, p_limit: 5 });
     if (error) throw error;
+    stage = 'loading scheme records';
     const topScore = matches?.[0]?.similarity ?? null;
     if (!matches?.length) {
       await db.from('query_logs').insert({ user_id: user.id, query_text_raw: parsed.data.text, query_language: parsed.data.lang, top_similarity_score: topScore, confidence_flag: topScore === null ? 'no_match' : 'low_confidence', response_text: FALLBACK });
@@ -29,15 +32,17 @@ export async function POST(request: Request) {
     if (schemeError) throw schemeError;
     const context = (schemes ?? []).map((scheme) => `<scheme id="${scheme.id}">Name: ${scheme.name_en}\nDescription: ${scheme.description_en}\nBenefits: ${scheme.benefits_en}\nApplication: ${scheme.application_process_en}\nDocuments: ${(scheme.required_documents ?? []).join(', ')}\nOfficial URL: ${scheme.official_url}\nEligibility: ${JSON.stringify(scheme.eligibility_criteria)}</scheme>`).join('\n');
     interface StructuredAnswer {
-  description: string;
-  benefits: string;
-  how_to_apply: string;
-  documents: string;
-  official_url: string;
-}
+      description: string;
+      benefits: string;
+      how_to_apply: string;
+      documents: string;
+      official_url: string;
+    }
 
-const answer = await generateJson<StructuredAnswer>(`<context>${context}</context>\n<query>${parsed.data.text}</query>\nRespond with a JSON object containing keys: description, benefits, how_to_apply, documents, official_url. Respond in ${parsed.data.lang}.`, SYSTEM_PROMPT);
-const formattedAnswer = answer ? `📋 Description: ${answer.description}\n💰 Benefits: ${answer.benefits}\n📝 How to Apply: ${answer.how_to_apply}\n📄 Documents: ${answer.documents}\n🔗 Official URL: ${answer.official_url}` : FALLBACK;
+    stage = 'generating answer';
+    const answer = await generateJson<StructuredAnswer>(`<context>${context}</context>\n<query>${parsed.data.text}</query>\nRespond in ${parsed.data.lang} using simple, short sentences. Return a JSON object with keys description, benefits, how_to_apply, documents, official_url. Use plain text values and do not invent details absent from the scheme records.`, SYSTEM_PROMPT);
+    const formattedAnswer = answer ? `📌 About this scheme\n${answer.description || 'See the official scheme page for details.'}\n\n💰 Benefits\n${answer.benefits || 'Check the official page for current benefits.'}\n\n📝 How to apply\n${answer.how_to_apply || 'Follow the official application instructions.'}\n\n📄 Keep ready\n${answer.documents || 'Check the official page for required documents.'}\n\n🔗 Official website\n${answer.official_url || 'Open the scheme link below.'}` : FALLBACK;
+    stage = 'saving chat response';
     await db.from('query_logs').insert({
         user_id: user.id,
         query_text_raw: parsed.data.text,
@@ -49,7 +54,8 @@ const formattedAnswer = answer ? `📋 Description: ${answer.description}\n💰 
       });
       return NextResponse.json({ answer: formattedAnswer, schemes, confidence: 'confident' });
   } catch (error) {
-    console.error('Voice query failed:', error);
-    return NextResponse.json({ error: 'Unable to process your question' }, { status: 500 });
+    const errorId = crypto.randomUUID();
+    console.error('Voice query failed', { errorId, stage, error });
+    return NextResponse.json({ error: `We could not find an answer right now. Please try again. (Reference: ${errorId.slice(0, 8)})` }, { status: 500 });
   }
 }

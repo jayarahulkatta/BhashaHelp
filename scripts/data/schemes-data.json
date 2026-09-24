@@ -1083,6 +1083,29 @@
     ]
   },
   {
+    "scheme_code": "IN-PMDAKSH-001",
+    "name_en": "PM-DAKSH Skill Development Scheme",
+    "category": "Employment & Skill Development",
+    "level": "central",
+    "nodal_ministry_or_dept": "Ministry of Social Justice and Empowerment",
+    "applicable_states": ["ALL"],
+    "description_en": "A central skill development programme offering training and upskilling for eligible groups including SC, OBC, EWS, DNT communities and sanitation workers, to support employment and self-employment.",
+    "benefits_en": "Eligible training is provided free of cost. Stipends may be available for some non-residential courses and groups; amounts and course availability depend on current programme rules.",
+    "application_process_en": "Check current eligibility and available training, then register through the Skill India Digital Hub or the official PM-DAKSH portal.",
+    "required_documents": ["Identity and residence proof", "Category or community certificate where applicable", "Income certificate for OBC or EWS applicants where required"],
+    "official_url": "https://pmdaksh.dosje.gov.in/",
+    "source": "myscheme",
+    "eligibility_criteria": {"age_min": 18, "age_max": 45, "category": ["SC", "OBC", "EWS", "DNT", "Safai Mitra"]},
+    "is_active": true,
+    "last_verified_at": "2026-09-23",
+    "verified_by": "bhashahelp-team",
+    "translations": [
+      {"language_code":"en","name":"PM-DAKSH Skill Development Scheme","description":"Free skill training and upskilling for eligible communities to support employment and self-employment.","benefits":"Training is free for eligible participants. Stipends may apply to some courses and groups.","eligibility_summary":"Generally for eligible SC, OBC, EWS, DNT and sanitation worker applicants aged 18–45. Course rules apply."},
+      {"language_code":"hi","name":"पीएम-दक्ष कौशल विकास योजना","description":"पात्र समुदायों के लिए रोजगार और स्वरोजगार को बढ़ावा देने हेतु निःशुल्क कौशल प्रशिक्षण और उन्नयन।","benefits":"पात्र प्रतिभागियों के लिए प्रशिक्षण निःशुल्क है। कुछ पाठ्यक्रमों और समूहों के लिए वजीफा मिल सकता है।","eligibility_summary":"आम तौर पर 18–45 वर्ष के पात्र SC, OBC, EWS, DNT और सफाई कर्मचारी आवेदकों के लिए। पाठ्यक्रम के नियम लागू होंगे।"},
+      {"language_code":"te","name":"పీఎం-దక్ష్ నైపుణ్య అభివృద్ధి పథకం","description":"అర్హత కలిగిన వర్గాలకు ఉపాధి, స్వయం ఉపాధి కోసం ఉచిత నైపుణ్య శిక్షణ మరియు నైపుణ్యాభివృద్ధి.","benefits":"అర్హులైన వారికి శిక్షణ ఉచితం. కొన్ని కోర్సులు, వర్గాలకు స్టైపెండ్ ఉండవచ్చు.","eligibility_summary":"సాధారణంగా 18–45 ఏళ్ల SC, OBC, EWS, DNT మరియు పారిశుధ్య కార్మికులకు. కోర్సు నియమాలు వర్తిస్తాయి."}
+    ]
+  },
+  {
     "scheme_code": "IN-OLD-AGE-PENSION-001",
     "name_en": "Indira Gandhi National Old Age Pension Scheme (IGNOAPS)",
     "category": "Social Security & Pension",

@@ -148,7 +148,7 @@ export default function Home() {
         {view === 'auth' && <AuthScreen />}
 
         {view === 'wizard' && (
-          <ProfileWizard onComplete={handleWizardComplete} isEditing={profile !== null} />
+          <ProfileWizard onComplete={handleWizardComplete} isEditing={profile !== null} profile={profile} />
         )}
 
         {view === 'results' && (

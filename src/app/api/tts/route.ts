@@ -3,7 +3,7 @@ import { getSpeechProvider } from '@/lib/speech';
 import { z } from 'zod';
 
 const ttsSchema = z.object({
-  text: z.string().min(1, 'Text is required'),
+  text: z.string().trim().min(1, 'Text is required').max(5000, 'Text is too long to read aloud'),
   lang: z.enum(['en', 'te', 'hi']),
 });
 

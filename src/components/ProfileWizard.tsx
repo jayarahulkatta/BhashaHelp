@@ -8,9 +8,10 @@ import { useAuth } from '@/components/AuthProvider';
 interface ProfileWizardProps {
   onComplete: () => void;
   isEditing?: boolean;
+  profile?: UserProfile | null;
 }
 
-export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardProps) {
+export function ProfileWizard({ onComplete, isEditing = false, profile }: ProfileWizardProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   
@@ -18,14 +19,19 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
   const [loading, setLoading] = useState(false);
   
   // Form State
-  const [gender, setGender] = useState<string>('');
-  const [area, setArea] = useState<string>('');
-  const [age, setAge] = useState<string>('');
-  const [stateName, setStateName] = useState<string>('Telangana');
-  const [category, setCategory] = useState<string>('');
-  const [isStudent, setIsStudent] = useState<boolean>(false);
-  const [hasDisability, setHasDisability] = useState<boolean>(false);
-  const [isMinority, setIsMinority] = useState<boolean>(false);
+  const [gender, setGender] = useState<string>(profile?.gender ?? '');
+  const [area, setArea] = useState<string>(profile?.area ?? '');
+  const [age, setAge] = useState<string>(profile?.age?.toString() ?? '');
+  const [stateName, setStateName] = useState<string>(profile?.state ?? 'Telangana');
+  const [category, setCategory] = useState<string>(profile?.category ?? '');
+  const [isStudent, setIsStudent] = useState<boolean>(profile?.is_student ?? false);
+  const [hasDisability, setHasDisability] = useState<boolean>(profile?.has_disability ?? false);
+  const [isMinority, setIsMinority] = useState<boolean>(profile?.is_minority ?? false);
+  const [occupation, setOccupation] = useState(profile?.occupation ?? '');
+  const [annualIncome, setAnnualIncome] = useState(profile?.annual_income ?? '');
+  const [isFarmer, setIsFarmer] = useState(profile?.is_farmer ?? false);
+  const [maritalStatus, setMaritalStatus] = useState(profile?.marital_status ?? '');
+  const [ownsHome, setOwnsHome] = useState(profile?.owns_home ?? false);
 
   const handleNext = () => setStep(s => s + 1);
   const handleBack = () => setStep(s => s - 1);
@@ -44,6 +50,11 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
         is_student: isStudent,
         has_disability: hasDisability,
         is_minority: isMinority,
+        occupation: occupation || null,
+        annual_income: annualIncome || null,
+        is_farmer: isFarmer,
+        marital_status: maritalStatus || null,
+        owns_home: ownsHome,
       };
       
       await api.user.updateProfile(user.id, updates);
@@ -156,18 +167,14 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
                 onChange={e => setStateName(e.target.value)}
                 className="w-full p-4 text-lg rounded-2xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all font-medium text-slate-800"
               >
-                <option value="Telangana">Telangana</option>
-                <option value="Andhra Pradesh">Andhra Pradesh</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Other">Other</option>
+                {['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Andaman and Nicobar Islands','Chandigarh','Dadra and Nagar Haveli and Daman and Diu','Delhi','Jammu and Kashmir','Ladakh','Lakshadweep','Puducherry'].sort().map(state => <option key={state} value={state}>{state}</option>)}
               </select>
             </div>
 
             <div className="space-y-3">
               <label className="text-base font-semibold text-slate-800">{t('wizard.category')}</label>
               <div className="grid grid-cols-2 gap-3">
-                {['General', 'OBC', 'SC', 'ST'].map(cat => (
+                {['General', 'OBC', 'SC', 'ST', 'EWS', 'DNT', 'Safai Mitra'].map(cat => (
                   <button 
                     key={cat}
                     onClick={() => setCategory(cat)}
@@ -177,7 +184,7 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
                         : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-amber-200 hover:bg-slate-100'
                     }`}
                   >
-                    {t(`wizard.${cat.toLowerCase()}`)}
+                    {['EWS', 'DNT', 'Safai Mitra'].includes(cat) ? cat : t(`wizard.${cat.toLowerCase()}`)}
                   </button>
                 ))}
               </div>
@@ -187,6 +194,27 @@ export function ProfileWizard({ onComplete, isEditing = false }: ProfileWizardPr
 
         {step === 3 && (
           <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+            <div className="space-y-3">
+              <label className="text-base font-semibold text-slate-800">Work and household details</label>
+              <label className="block text-sm font-medium text-slate-600">Occupation
+                <select value={occupation} onChange={e => setOccupation(e.target.value)} className="mt-2 w-full p-3 rounded-xl border border-slate-200 bg-slate-50">
+                  <option value="">Choose if you like</option>{['Worker', 'Artisan', 'Self-employed', 'Government employee', 'Unemployed', 'Other'].map(x => <option key={x}>{x}</option>)}
+                </select>
+              </label>
+              <label className="block text-sm font-medium text-slate-600">Approximate annual family income
+                <select value={annualIncome} onChange={e => setAnnualIncome(e.target.value)} className="mt-2 w-full p-3 rounded-xl border border-slate-200 bg-slate-50">
+                  <option value="">Prefer not to say</option>{['Below ₹1 lakh', '₹1–3 lakh', '₹3–6 lakh', '₹6–12 lakh', 'Above ₹12 lakh'].map(x => <option key={x}>{x}</option>)}
+                </select>
+              </label>
+              <label className="block text-sm font-medium text-slate-600">Marital status
+                <select value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} className="mt-2 w-full p-3 rounded-xl border border-slate-200 bg-slate-50">
+                  <option value="">Prefer not to say</option>{['Single', 'Married', 'Widowed', 'Other'].map(x => <option key={x}>{x}</option>)}
+                </select>
+              </label>
+              {[{label:'I work in farming', value:isFarmer, set:setIsFarmer}, {label:'My household owns a pucca house', value:ownsHome, set:setOwnsHome}].map(item => (
+                <button type="button" key={item.label} onClick={() => item.set(!item.value)} aria-pressed={item.value} className={`w-full p-4 rounded-xl border text-left ${item.value ? 'border-green-500 bg-green-50' : 'border-slate-200 bg-slate-50'}`}>{item.value ? '✓ ' : '○ '}{item.label}</button>
+              ))}
+            </div>
             <button
               onClick={() => setIsStudent(!isStudent)}
               className={`w-full flex items-center p-5 rounded-2xl border-2 transition-all text-left ${

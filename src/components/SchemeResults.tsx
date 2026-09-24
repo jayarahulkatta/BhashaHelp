@@ -37,7 +37,7 @@ function guessEligibility(scheme: any, profile: UserProfile): 'likely' | 'maybe'
   }
 
   if (criteria.includes('farmer') || criteria.includes('kisan')) {
-    return 'maybe';
+    return profile.is_farmer ? 'likely' : 'maybe';
   }
 
   if ((criteria.includes('girl') || criteria.includes('women') || criteria.includes('matru')) &&
@@ -195,9 +195,13 @@ export function SchemeResults({ profile, onEditProfile }: SchemeResultsProps) {
   if (profile.age) profileSummaryParts.push(`${profile.age} yrs`);
   if (profile.state) profileSummaryParts.push(profile.state);
   if (profile.category) profileSummaryParts.push(profile.category);
+  if (profile.occupation) profileSummaryParts.push(profile.occupation);
+  if (profile.annual_income) profileSummaryParts.push(profile.annual_income);
+  if (profile.is_farmer) profileSummaryParts.push('Farmer');
   if (profile.is_student) profileSummaryParts.push('Student');
   if (profile.has_disability) profileSummaryParts.push('Divyang');
   if (profile.is_minority) profileSummaryParts.push('Minority');
+  if (profile.marital_status) profileSummaryParts.push(profile.marital_status);
 
   return (
     <div className="flex flex-col flex-1 h-full w-full overflow-hidden bg-slate-50">

@@ -5,6 +5,7 @@ import { useVoice } from '@/hooks/useVoice';
 import { api, Scheme } from '@/lib/api';
 import { useLanguage } from './LanguageProvider';
 import { VoiceInput } from '@/components/ui/voice-input';
+import { Volume2, VolumeX } from 'lucide-react';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -20,6 +21,40 @@ export function VoiceInterface() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [textInput, setTextInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
+  const [speechError, setSpeechError] = useState('');
+
+  useEffect(() => () => {
+    audioRef.current?.pause();
+    if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+  }, []);
+
+  const speakMessage = async (text: string, idx: number) => {
+    if (speakingIndex === idx) {
+      audioRef.current?.pause();
+      setSpeakingIndex(null);
+      return;
+    }
+    audioRef.current?.pause();
+    if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+    setSpeechError('');
+    setSpeakingIndex(idx);
+    try {
+      const cleanText = text.replace(/https?:\/\/\S+/g, '').replace(/[📋💰📝📄🔗✅❌⚠️]/gu, '').replace(/\*+/g, '').trim();
+      const url = await api.voice.tts(cleanText, lang);
+      audioUrlRef.current = url;
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => setSpeakingIndex(null);
+      audio.onerror = () => { setSpeakingIndex(null); setSpeechError('Audio could not be played. Please try again.'); };
+      await audio.play();
+    } catch (err) {
+      setSpeakingIndex(null);
+      setSpeechError(err instanceof Error ? err.message : 'Audio could not be generated.');
+    }
+  };
 
   // Auto-scroll to bottom of chat
   const scrollToBottom = () => {
@@ -112,6 +147,12 @@ export function VoiceInterface() {
                   </div>
                 )}
               </div>
+              {msg.role === 'assistant' && !msg.loading && msg.text && (
+                <button type="button" onClick={() => speakMessage(msg.text, idx)} aria-label={speakingIndex === idx ? 'Stop reading answer' : 'Read answer aloud'} className="mt-1 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-800">
+                  {speakingIndex === idx ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                  {speakingIndex === idx ? 'Stop' : 'Read aloud'}
+                </button>
+              )}
               
               {msg.schemes && msg.schemes.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2 max-w-[85%]">
@@ -136,6 +177,7 @@ export function VoiceInterface() {
             ⚠️ {voiceError}
           </div>
         )}
+        {speechError && <div role="status" className="mb-2 text-center text-xs text-red-600">{speechError}</div>}
         
         <div className="flex gap-2 sm:gap-3 max-w-4xl mx-auto">
           <form onSubmit={handleTextSubmit} className="flex-1 relative flex items-center">
