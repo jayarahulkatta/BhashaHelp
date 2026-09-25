@@ -7,7 +7,7 @@ let cachedProvider: SpeechProvider | null = null;
 export function getSpeechProvider(): SpeechProvider {
   if (cachedProvider) return cachedProvider;
 
-  const name = (process.env.SPEECH_PROVIDER ?? 'sarvam').toLowerCase();
+  const name = (process.env.SPEECH_PROVIDER ?? 'bhashini').toLowerCase();
 
   switch (name) {
     case 'sarvam':
