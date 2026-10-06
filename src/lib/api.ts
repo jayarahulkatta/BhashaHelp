@@ -74,12 +74,19 @@ export const api = {
 
   schemes: {
     match: async (lang: Language): Promise<{ schemes: Scheme[] }> => {
-      if (!supabase) throw new Error('Supabase client is unavailable');
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error('Please sign in to view schemes');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+
+      // Attach auth token if logged in; anonymous users still get all active schemes
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
+      }
+
       const res = await fetch('/api/schemes/match', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers,
         body: JSON.stringify({ language: lang })
       });
       if (!res.ok) {
