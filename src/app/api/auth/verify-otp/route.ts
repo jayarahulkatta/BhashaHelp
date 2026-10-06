@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { checkRateLimit, normalizePhoneNumber } from '@/lib/auth';
+import { checkRateLimitAsync, normalizePhoneNumber } from '@/lib/auth';
 import { getTwoFactorConfig } from '@/lib/config';
 import { getServiceSupabase } from '@/lib/supabase';
 import crypto from 'crypto';
@@ -31,17 +31,15 @@ export async function POST(request: Request) {
     let normalizedPhone: string;
     try {
       normalizedPhone = normalizePhoneNumber(phone);
-    } catch {
-      return NextResponse.json({ error: 'Invalid phone number format' }, { status: 400 });
+    } catch (err: any) {
+      return NextResponse.json({ error: err.message || 'Invalid phone number format' }, { status: 400 });
     }
 
-    // IP-based rate limiting for verification attempts
     const ip = request.headers.get('x-forwarded-for') || 'unknown-ip';
-    const rateLimitKey = `verify-otp:${ip}:${normalizedPhone}`;
     
-    // Max 5 attempts per 5 minutes
-    if (!checkRateLimit(rateLimitKey, 5, 5 * 60 * 1000)) {
-      return NextResponse.json({ error: 'Too many verification attempts. Please try again later.' }, { status: 429 });
+    // Max 5 attempts per session
+    if (!(await checkRateLimitAsync(`verify-otp:session:${sessionId}`, 5, 15 * 60 * 1000))) {
+      return NextResponse.json({ error: 'Too many verification attempts for this session. Please request a new OTP.' }, { status: 429 });
     }
 
     // Verify session binding in database

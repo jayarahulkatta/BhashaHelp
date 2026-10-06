@@ -4,7 +4,7 @@ import { POST as verifyOtp } from '../verify-otp/route';
 
 // Mock dependencies
 vi.mock('@/lib/auth', () => ({
-  checkRateLimit: vi.fn(() => true),
+  checkRateLimitAsync: vi.fn(async () => true),
   normalizePhoneNumber: vi.fn((p) => `+91${p.replace(/\D/g, '').slice(-10)}`)
 }));
 

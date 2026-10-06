@@ -1,3 +1,4 @@
+import 'server-only';
 import { getGeminiConfig } from './config';
 
 interface GeminiEmbeddingResponse {
@@ -12,18 +13,20 @@ interface GeminiGenerateRequest {
   }>;
   generationConfig: {
     temperature: number;
+    maxOutputTokens?: number;
   };
   systemInstruction?: {
     parts: Array<{ text: string }>;
   };
 }
 
-export async function getEmbedding(text: string): Promise<number[]> {
+export async function getEmbedding(text: string, signal?: AbortSignal): Promise<number[]> {
   const config = getGeminiConfig();
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.embeddingModel}:embedContent?key=${config.apiKey}`;
   
   const response = await fetch(url, {
     method: 'POST',
+    signal,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: `models/${config.embeddingModel}`,
@@ -44,7 +47,7 @@ export async function getEmbedding(text: string): Promise<number[]> {
   return data.embedding.values;
 }
 
-export async function generateText(prompt: string, systemInstruction?: string): Promise<string> {
+export async function generateText(prompt: string, systemInstruction?: string, signal?: AbortSignal): Promise<string> {
   const config = getGeminiConfig();
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.generationModel}:generateContent?key=${config.apiKey}`;
   
@@ -56,6 +59,7 @@ export async function generateText(prompt: string, systemInstruction?: string): 
     ],
     generationConfig: {
       temperature: 0.1, // Low temperature for deterministic RAG answers
+      maxOutputTokens: 500, // Cap output tokens
     }
   };
 
@@ -71,6 +75,7 @@ export async function generateText(prompt: string, systemInstruction?: string): 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const response = await fetch(url, {
       method: 'POST',
+      signal,
       headers: { 'Content-Type': 'application/json' },
       body: requestBody
     });
@@ -96,8 +101,8 @@ export async function generateText(prompt: string, systemInstruction?: string): 
   throw new Error('Failed to generate text after retries');
 }
 
-export async function generateJson<T>(prompt: string, systemInstruction?: string): Promise<T> {
-  const text = await generateText(prompt, systemInstruction);
+export async function generateJson<T>(prompt: string, systemInstruction?: string, signal?: AbortSignal): Promise<T> {
+  const text = await generateText(prompt, systemInstruction, signal);
   try {
     const jsonString = text.replace(/```json\n?|\n?```/g, '').trim();
     return JSON.parse(jsonString) as T;

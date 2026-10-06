@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { checkRateLimit, normalizePhoneNumber } from '@/lib/auth';
+import { checkRateLimitAsync, normalizePhoneNumber } from '@/lib/auth';
 import { getTwoFactorConfig } from '@/lib/config';
 import { getServiceSupabase } from '@/lib/supabase';
 import { z } from 'zod';
@@ -23,17 +23,30 @@ export async function POST(request: Request) {
     let normalizedPhone: string;
     try {
       normalizedPhone = normalizePhoneNumber(phone);
-    } catch {
-      return NextResponse.json({ error: 'Invalid phone number format' }, { status: 400 });
+    } catch (err: any) {
+      return NextResponse.json({ error: err.message || 'Invalid phone number format' }, { status: 400 });
     }
 
-    // IP-based rate limiting (fallback to a generic key if IP is missing in serverless)
     const ip = request.headers.get('x-forwarded-for') || 'unknown-ip';
-    const rateLimitKey = `send-otp:${ip}:${normalizedPhone}`;
     
-    // Max 3 requests per 5 minutes
-    if (!checkRateLimit(rateLimitKey, 3, 5 * 60 * 1000)) {
-      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+    // IP-based rate limiting: 20 per hour
+    if (!(await checkRateLimitAsync(`send-otp:ip:${ip}`, 20, 60 * 60 * 1000))) {
+      return NextResponse.json({ error: 'Too many requests from this IP. Please try again later.' }, { status: 429 });
+    }
+
+    // Phone-based cooldown: max 1 per 60s
+    if (!(await checkRateLimitAsync(`send-otp:cooldown:${normalizedPhone}`, 1, 60 * 1000))) {
+      return NextResponse.json({ error: 'Please wait 60 seconds before requesting another OTP.' }, { status: 429 });
+    }
+
+    // Phone-based limit: max 3 per 15 minutes
+    if (!(await checkRateLimitAsync(`send-otp:phone:${normalizedPhone}`, 3, 15 * 60 * 1000))) {
+      return NextResponse.json({ error: 'Too many requests for this phone number. Please try again later.' }, { status: 429 });
+    }
+
+    // Phone-based daily limit: 10 per day
+    if (!(await checkRateLimitAsync(`send-otp:daily:${normalizedPhone}`, 10, 24 * 60 * 60 * 1000))) {
+      return NextResponse.json({ error: 'Daily limit reached for this phone number.' }, { status: 429 });
     }
 
     // 2Factor.in API handles SMS and VOICE. We can use the TemplateName parameter to enforce SMS
