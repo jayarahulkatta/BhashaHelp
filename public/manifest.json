@@ -1,0 +1,16 @@
+{
+  "name": "BhashaHelp — Government Schemes",
+  "short_name": "BhashaHelp",
+  "description": "Voice-powered assistant to discover government welfare schemes in Telugu, Hindi, and English.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF9933",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
