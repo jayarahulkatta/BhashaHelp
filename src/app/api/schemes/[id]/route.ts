@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getServiceSupabase } from '@/lib/supabase';
 import { languageSchema } from '@/lib/scheme-schemas';
 
-export async function GET(request: Request, context: RouteContext<'/api/schemes/[id]'>) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   if (!z.string().uuid().safeParse(id).success) return NextResponse.json({ error: 'Invalid scheme id' }, { status: 400 });
   const language = languageSchema.catch('en').parse(new URL(request.url).searchParams.get('language'));
