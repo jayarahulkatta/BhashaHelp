@@ -7,6 +7,9 @@ export async function requireUser(request: Request) {
   return error || !data.user ? null : data.user;
 }
 
+/** Same as requireUser but semantically signals that null is expected (anonymous access). */
+export const getUser = requireUser;
+
 export async function requireAdmin(request: Request) {
   const user = await requireUser(request);
   if (!user) return null;

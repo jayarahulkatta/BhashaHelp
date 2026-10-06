@@ -1,12 +1,4 @@
 /// <reference types="vitest/globals" />
-import { cleanRateLimitStore } from '@/lib/auth';
 
-// Cleanup rate limit store before each test
-beforeEach(() => {
-  cleanRateLimitStore();
-});
-
-// Cleanup rate limit store after all tests
-afterAll(() => {
-  cleanRateLimitStore();
-});
+// Rate limiting is now DB-based (via Supabase RPC), so no in-memory cleanup needed.
+// Tests that exercise rate limiting should mock @/lib/auth instead.

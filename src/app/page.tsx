@@ -21,7 +21,7 @@ export default function Home() {
     if (isLoading) return;
 
     if (!session || !user) {
-      queueMicrotask(() => setView('auth'));
+      queueMicrotask(() => setView('results'));
       return;
     }
 

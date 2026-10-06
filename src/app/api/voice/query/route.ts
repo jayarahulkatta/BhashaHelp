@@ -89,12 +89,19 @@ export async function POST(request: Request) {
   try {
     const embedding = await getEmbedding(parsed.data.text, abortController.signal);
     stage = 'matching schemes';
-    const { data: matches, error } = await db.rpc('match_eligible_schemes_semantic', { p_user_id: user.id, p_query_embedding: embedding, p_threshold: 0.55, p_limit: 5 });
+    const { data: matches, error } = await db.rpc('match_eligible_schemes_semantic', { p_user_id: user?.id || null, p_query_embedding: embedding, p_threshold: 0.55, p_limit: 5 });
     if (error) throw error;
     stage = 'loading scheme records';
     const topScore = matches?.[0]?.similarity ?? null;
+    
+    // Phase 5: Confidence tiers
+    const LOW_CONFIDENCE_THRESHOLD = 0.65;
+    const confidenceFlag = topScore === null ? 'no_match' 
+      : topScore < LOW_CONFIDENCE_THRESHOLD ? 'low_confidence' 
+      : 'confident';
+    
     if (!matches?.length) {
-      await db.from('query_logs').insert({ user_id: user?.id || null, query_text_raw: parsed.data.text, query_language: parsed.data.lang, top_similarity_score: topScore, confidence_flag: topScore === null ? 'no_match' : 'low_confidence', response_text: langLabels.fallback });
+      await db.from('query_logs').insert({ user_id: user?.id || null, query_text_raw: parsed.data.text, query_language: parsed.data.lang, top_similarity_score: topScore, confidence_flag: 'no_match', response_text: langLabels.fallback });
       return NextResponse.json({ answer: langLabels.fallback, schemes: [], confidence: 'no_match' });
     }
     const ids = matches.map((match: { scheme_id: string }) => match.scheme_id);
@@ -110,8 +117,13 @@ export async function POST(request: Request) {
     }
 
     stage = 'generating answer';
-    const answer = await generateJson<StructuredAnswer>(`<context>${context}</context>\n<query>${parsed.data.text}</query>\nRespond in ${parsed.data.lang} using simple, short sentences. Return a JSON object with keys description, benefits, how_to_apply, documents, official_url. Use plain text values and do not invent details absent from the scheme records.`, SYSTEM_PROMPT, abortController.signal);
-    const formattedAnswer = answer ? `${langLabels.about}\n${answer.description || langLabels.aboutFallback}\n\n${langLabels.benefits}\n${answer.benefits || langLabels.benefitsFallback}\n\n${langLabels.howToApply}\n${answer.how_to_apply || langLabels.howToApplyFallback}\n\n${langLabels.documents}\n${answer.documents || langLabels.documentsFallback}\n\n${langLabels.website}\n${answer.official_url || langLabels.websiteFallback}` : langLabels.fallback;
+    const answer = await generateJson<StructuredAnswer>(`<context>${context}</context>\n<query>${parsed.data.text}</query>\nRespond in ${parsed.data.lang} using simple, short sentences. Return a JSON object with keys description, benefits, how_to_apply, documents, official_url. Use plain text values and do not invent details absent from the scheme records. Always include the official_url from the scheme record so the user can verify.`, SYSTEM_PROMPT, abortController.signal);
+    let formattedAnswer = answer ? `${langLabels.about}\n${answer.description || langLabels.aboutFallback}\n\n${langLabels.benefits}\n${answer.benefits || langLabels.benefitsFallback}\n\n${langLabels.howToApply}\n${answer.how_to_apply || langLabels.howToApplyFallback}\n\n${langLabels.documents}\n${answer.documents || langLabels.documentsFallback}\n\n${langLabels.website}\n${answer.official_url || langLabels.websiteFallback}` : langLabels.fallback;
+    
+    // Prepend disclaimer for low-confidence results
+    if (confidenceFlag === 'low_confidence') {
+      formattedAnswer = `⚠️ This answer may not be accurate. Please verify on the official website.\n\n${formattedAnswer}`;
+    }
     stage = 'saving chat response';
     await db.from('query_logs').insert({
         user_id: user?.id || null,
@@ -119,10 +131,10 @@ export async function POST(request: Request) {
         query_language: parsed.data.lang,
         retrieved_scheme_ids: ids,
         top_similarity_score: topScore,
-        confidence_flag: 'confident',
+        confidence_flag: confidenceFlag,
         response_text: formattedAnswer
       });
-      return NextResponse.json({ answer: formattedAnswer, schemes, confidence: 'confident' });
+      return NextResponse.json({ answer: formattedAnswer, schemes, confidence: confidenceFlag });
   } catch (error) {
     const errorId = crypto.randomUUID();
     console.error('Voice query failed', { errorId, stage, error });

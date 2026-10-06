@@ -75,7 +75,6 @@ export async function POST(request: Request) {
     }
 
     // OTP is valid. Now handle Supabase authentication.
-    const supabaseAdmin = getServiceSupabase();
     const authEmail = phoneToAuthEmail(normalizedPhone);
     
     // Generate a high-entropy random password just for this login session

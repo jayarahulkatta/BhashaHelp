@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVoice } from '@/hooks/useVoice';
 import { api, Scheme } from '@/lib/api';
+import { useAuth } from './AuthProvider';
 import { useLanguage } from './LanguageProvider';
 import { VoiceInput } from '@/components/ui/voice-input';
 import { Volume2, VolumeX } from 'lucide-react';
@@ -16,7 +17,8 @@ interface ChatMessage {
 
 export function VoiceInterface() {
   const { lang, t } = useLanguage();
-  const { isRecording, transcript, error: voiceError, startRecording, stopRecording } = useVoice(lang);
+  const { session } = useAuth();
+  const { isRecording, transcript, error: voiceError, recordingSeconds, maxRecordingSeconds, startRecording, stopRecording } = useVoice(lang);
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [textInput, setTextInput] = useState('');
@@ -166,6 +168,21 @@ export function VoiceInterface() {
             </div>
           ))
         )}
+        
+        {!session && messages.length > 0 && messages[messages.length - 1].role === 'assistant' && !messages[messages.length - 1].loading && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center mt-4 shadow-sm animate-in fade-in duration-500">
+            <p className="text-sm text-amber-800 font-medium mb-3">
+              Want to save your preferences to get more accurate answers in the future?
+            </p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-5 rounded-xl text-sm transition-colors shadow-sm"
+            >
+              Log in / Sign up
+            </button>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -207,8 +224,20 @@ export function VoiceInterface() {
         </div>
         
         {isRecording && (
-          <div className="text-center mt-3 text-xs font-bold text-red-500 animate-pulse uppercase tracking-wider">
-            Listening... Tap to stop
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-xs font-bold text-red-500 uppercase tracking-wider">
+                Listening... {recordingSeconds}s / {maxRecordingSeconds}s
+              </span>
+            </div>
+            <div className="w-full max-w-xs mx-auto bg-slate-200 rounded-full h-1.5 overflow-hidden">
+              <div 
+                className="bg-red-500 h-full rounded-full transition-all duration-1000 ease-linear" 
+                style={{ width: `${(recordingSeconds / maxRecordingSeconds) * 100}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-slate-400 text-center">Tap microphone to stop</p>
           </div>
         )}
       </div>
