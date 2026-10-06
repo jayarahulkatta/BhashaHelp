@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, normalizePhoneNumber } from '@/lib/auth';
 import { getTwoFactorConfig } from '@/lib/config';
+import { getServiceSupabase } from '@/lib/supabase';
 import { z } from 'zod';
 
 const sendOtpSchema = z.object({
@@ -35,15 +36,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
-    // Call 2Factor.in API
-    const twoFactorUrl = `https://2factor.in/API/V1/${config.apiKey}/SMS/${encodeURIComponent(normalizedPhone)}/AUTOGEN`;
+    // 2Factor.in API handles SMS and VOICE. We can use the TemplateName parameter to enforce SMS
+    // or rely on the AUTOGEN endpoint. However, 2Factor falls back to voice automatically if SMS fails.
+    // To restrict to SMS only, we should ideally use their transactional endpoints or check if the configuration
+    // specifically forces it. For AUTOGEN, if it falls back to Voice, the Status might still be Success
+    // but we'll monitor the Details. We can append `?sms_only=1` if the provider supports it, or just use the SMS endpoint.
+    let twoFactorUrl = `https://2factor.in/API/V1/${config.apiKey}/SMS/${encodeURIComponent(normalizedPhone)}/AUTOGEN`;
     
+    if (config.otpChannel === 'voice') {
+      twoFactorUrl = `https://2factor.in/API/V1/${config.apiKey}/VOICE/${encodeURIComponent(normalizedPhone)}/AUTOGEN`;
+    }
+
     const response = await fetch(twoFactorUrl, { method: 'GET' });
     const data = await response.json();
 
     if (data.Status !== 'Success') {
-      console.error('2Factor API Error:', data);
-      return NextResponse.json({ error: 'Failed to send OTP' }, { status: 500 });
+      console.error(`2Factor API Error on Send: Status=${data.Status}, Details=${data.Details}, Phone=***${normalizedPhone.slice(-4)}`);
+      // Return a user-friendly error instead of silently continuing
+      return NextResponse.json({ error: 'Failed to send OTP. Please try again later.' }, { status: 500 });
+    }
+
+    // Save session binding to database
+    const supabase = getServiceSupabase();
+    const { error: dbError } = await supabase.from('otp_sessions').insert({
+      session_id: data.Details,
+      phone: normalizedPhone,
+    });
+
+    if (dbError) {
+      console.error('Database Error saving OTP session:', dbError);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 
     // Return the session ID required for verification

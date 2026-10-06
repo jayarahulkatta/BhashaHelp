@@ -44,6 +44,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Too many verification attempts. Please try again later.' }, { status: 429 });
     }
 
+    // Verify session binding in database
+    const supabaseAdmin = getServiceSupabase();
+    const { data: sessionData, error: sessionError } = await supabaseAdmin
+      .from('otp_sessions')
+      .select('phone, created_at')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (sessionError || !sessionData) {
+      return NextResponse.json({ error: 'Invalid or expired session. Please request a new OTP.' }, { status: 400 });
+    }
+
+    if (sessionData.phone !== normalizedPhone) {
+      return NextResponse.json({ error: 'Session bound to a different phone number.' }, { status: 400 });
+    }
+    
+    // Check expiration (e.g. 15 minutes)
+    const sessionTime = new Date(sessionData.created_at).getTime();
+    if (Date.now() - sessionTime > 15 * 60 * 1000) {
+      return NextResponse.json({ error: 'OTP session expired. Please request a new OTP.' }, { status: 400 });
+    }
+
     // Call 2Factor.in Verification API
     const verifyUrl = `https://2factor.in/API/V1/${config.apiKey}/SMS/VERIFY/${encodeURIComponent(sessionId)}/${encodeURIComponent(otp)}`;
     

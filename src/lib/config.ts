@@ -65,6 +65,8 @@ export function getGeminiConfig() {
 export function getTwoFactorConfig() {
   return {
     apiKey: requireEnv('TWOFACTOR_API_KEY'),
+    otpChannel: process.env.OTP_CHANNEL || 'sms',
+    otpAllowVoice: process.env.OTP_ALLOW_VOICE === 'true',
   };
 }
 

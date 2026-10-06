@@ -80,13 +80,12 @@ function getCategoryIcon(category?: string) {
   return '🏛️';
 }
 
-function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile }) {
+function SchemeCard({ scheme, profile, onShowDetails }: { scheme: Scheme; profile: UserProfile; onShowDetails: () => void }) {
   const { t } = useLanguage();
-  const [expanded, setExpanded] = useState(false);
   const eligibility = guessEligibility(scheme, profile);
 
   return (
-    <article className={`bg-white rounded-2xl shadow-sm border transition-all duration-300 flex flex-col h-full overflow-hidden ${expanded ? 'border-amber-300 ring-2 ring-amber-100 shadow-md' : 'border-slate-200 hover:border-amber-200 hover:shadow-md'}`}>
+    <article className="bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-amber-200 hover:shadow-md transition-all duration-300 flex flex-col h-full overflow-hidden">
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3 flex-1">
@@ -104,43 +103,16 @@ function SchemeCard({ scheme, profile }: { scheme: Scheme; profile: UserProfile 
            <EligibilityBadge level={eligibility} />
         </div>
 
-        <p className={`text-sm text-slate-600 leading-relaxed font-medium ${expanded ? '' : 'line-clamp-2'}`}>
+        <p className="text-sm text-slate-600 leading-relaxed font-medium line-clamp-3">
           {scheme.description}
         </p>
 
-        {expanded && (
-          <div className="mt-5 space-y-4 text-sm bg-slate-50 rounded-xl p-4 border border-slate-100 animate-in fade-in duration-300">
-            <div className="flex gap-3">
-              <span className="text-amber-500 text-lg">🎯</span>
-              <div>
-                <p className="font-bold text-slate-800 mb-1">{t('results.whoCanApply')}</p>
-                <p className="text-slate-600 font-medium">{scheme.eligibility_summary || JSON.stringify(scheme.eligibility_criteria || {})}</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-green-500 text-lg">💰</span>
-              <div>
-                <p className="font-bold text-slate-800 mb-1">{t('results.benefits')}</p>
-                <p className="text-slate-600 font-medium">{scheme.benefits}</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-blue-500 text-lg">📝</span>
-              <div>
-                <p className="font-bold text-slate-800 mb-1">{t('results.howToApply')}</p>
-                <p className="text-slate-600 font-medium">{scheme.application_process || scheme.application_process_en}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className="mt-auto pt-5 flex items-center justify-between">
           <button
-            onClick={() => setExpanded(!expanded)}
+            onClick={onShowDetails}
             className="text-sm font-bold text-amber-600 hover:text-amber-700 focus:outline-none flex items-center gap-1"
           >
-            {expanded ? t('results.showLess') : t('results.showDetails')}
-            <svg className={`w-4 h-4 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            {t('results.showDetails')}
           </button>
           
           {scheme.source_url || scheme.official_url ? (
@@ -165,6 +137,7 @@ export function SchemeResults({ profile, onEditProfile }: SchemeResultsProps) {
   const { lang, t } = useLanguage();
   const [view, setView] = useState<View>('schemes');
   const [schemes, setSchemes] = useState<Scheme[]>([]);
+  const [selectedScheme, setSelectedScheme] = useState<Scheme | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
@@ -307,13 +280,80 @@ export function SchemeResults({ profile, onEditProfile }: SchemeResultsProps) {
               
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {schemes.map(scheme => (
-                  <SchemeCard key={scheme.id} scheme={scheme} profile={profile} />
+                  <SchemeCard key={scheme.id} scheme={scheme} profile={profile} onShowDetails={() => setSelectedScheme(scheme)} />
                 ))}
               </div>
             </div>
           )}
 
           <div className="h-6" />
+        </div>
+      )}
+
+      {/* ── Scheme Details Modal ────────────────────────────── */}
+      {selectedScheme && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedScheme(null)}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-slate-100 p-4 sm:p-5 flex items-center justify-between z-10 shrink-0">
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-xl shadow-inner shrink-0">
+                   {getCategoryIcon(selectedScheme.category)}
+                 </div>
+                 <div>
+                   <h2 className="font-bold text-lg text-slate-800 leading-tight">{selectedScheme.name}</h2>
+                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{selectedScheme.category}</p>
+                 </div>
+              </div>
+              <button onClick={() => setSelectedScheme(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-6">
+              <div>
+                 <EligibilityBadge level={guessEligibility(selectedScheme, profile)} />
+              </div>
+              
+              <p className="text-slate-700 font-medium leading-relaxed">{selectedScheme.description}</p>
+              
+              <div className="space-y-4 text-sm bg-slate-50 rounded-xl p-5 border border-slate-100">
+                <div className="flex gap-3">
+                  <span className="text-amber-500 text-lg shrink-0">🎯</span>
+                  <div>
+                    <p className="font-bold text-slate-800 mb-1">{t('results.whoCanApply')}</p>
+                    <p className="text-slate-600 font-medium">{selectedScheme.eligibility_summary || JSON.stringify(selectedScheme.eligibility_criteria || {})}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-green-500 text-lg shrink-0">💰</span>
+                  <div>
+                    <p className="font-bold text-slate-800 mb-1">{t('results.benefits')}</p>
+                    <p className="text-slate-600 font-medium">{selectedScheme.benefits}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-blue-500 text-lg shrink-0">📝</span>
+                  <div>
+                    <p className="font-bold text-slate-800 mb-1">{t('results.howToApply')}</p>
+                    <p className="text-slate-600 font-medium">{selectedScheme.application_process || selectedScheme.application_process_en}</p>
+                  </div>
+                </div>
+              </div>
+              
+              {selectedScheme.source_url || selectedScheme.official_url ? (
+                <div className="pt-2 flex justify-end">
+                  <a
+                    href={selectedScheme.source_url || selectedScheme.official_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2"
+                  >
+                    {t('results.officialPortal')} <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  </a>
+                </div>
+              ) : null}
+            </div>
+          </div>
         </div>
       )}
 
