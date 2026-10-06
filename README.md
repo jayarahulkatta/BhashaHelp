@@ -39,6 +39,13 @@ Open `http://localhost:3000`.
 - Confirm RLS is enabled on every table.
 - Confirm `match_schemes` returns `source_url` and `last_verified_date`, because the UI and answer prompt use both fields.
 
+## Production Hardening
+
+- **Rate Limiting:** Active on STT, query, and OTP endpoints via Supabase RPC (`check_rate_limit`).
+- **Abuse Protection:** OTP uses SMS strictly. Voice queries are capped via `GEMINI_DAILY_QUERY_CAP` and audio size limits (2MB).
+- **Anonymous-First Access:** Users can query without logging in. Prompts encourage saving preferences.
+- **Evaluation:** Run `npm run eval` to test semantic search accuracy against a benchmark dataset.
+
 ## Verification
 
 Run these before deploying:

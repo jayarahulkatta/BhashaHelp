@@ -30,7 +30,7 @@ export function normalizePhoneNumber(phone: string): string {
        throw new Error('Number must be a valid 10-digit Indian mobile number');
     }
     return phoneNumber.format('E.164');
-  } catch (err) {
+  } catch {
     throw new Error('Invalid phone number format');
   }
 }

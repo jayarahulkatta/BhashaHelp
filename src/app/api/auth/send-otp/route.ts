@@ -23,8 +23,8 @@ export async function POST(request: Request) {
     let normalizedPhone: string;
     try {
       normalizedPhone = normalizePhoneNumber(phone);
-    } catch (err: any) {
-      return NextResponse.json({ error: err.message || 'Invalid phone number format' }, { status: 400 });
+    } catch (err) {
+      return NextResponse.json({ error: (err as Error).message || 'Invalid phone number format' }, { status: 400 });
     }
 
     const ip = request.headers.get('x-forwarded-for') || 'unknown-ip';

@@ -2,23 +2,40 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, main, hardening]
   pull_request:
-    branches: [master]
+    branches: [master, main]
 
 jobs:
-  lint-and-build:
+  ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
           cache: npm
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      - run: npm run lint
+      - name: Lint
+        run: npm run lint
 
-      - run: npm run build
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-key
+
+      - name: Audit (advisory only)
+        run: npm audit --omit=dev || true

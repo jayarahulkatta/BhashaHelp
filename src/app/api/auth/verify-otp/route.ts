@@ -31,12 +31,10 @@ export async function POST(request: Request) {
     let normalizedPhone: string;
     try {
       normalizedPhone = normalizePhoneNumber(phone);
-    } catch (err: any) {
-      return NextResponse.json({ error: err.message || 'Invalid phone number format' }, { status: 400 });
+    } catch (err) {
+      return NextResponse.json({ error: (err as Error).message || 'Invalid phone number format' }, { status: 400 });
     }
 
-    const ip = request.headers.get('x-forwarded-for') || 'unknown-ip';
-    
     // Max 5 attempts per session
     if (!(await checkRateLimitAsync(`verify-otp:session:${sessionId}`, 5, 15 * 60 * 1000))) {
       return NextResponse.json({ error: 'Too many verification attempts for this session. Please request a new OTP.' }, { status: 429 });
